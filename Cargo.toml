@@ -1,0 +1,13 @@
+[package]
+name = "lib_mcts"
+version = "0.1.0"
+authors = ["Samuel Batissou <samuelbatissou@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ego-tree = "0.6.2"
+num-traits ="0.2.12"
+rand = "0.7.3"
+noisy_float = "0.1.12"
