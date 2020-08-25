@@ -2,16 +2,18 @@ use std::marker::PhantomData;
 use std::ops::{Add, AddAssign, Div};
 
 use ego_tree::{NodeId, NodeMut, Tree};
+use noisy_float::prelude::n64;
 use num_traits::{ToPrimitive, Zero};
+use rand::{Rng, thread_rng};
 use rand::prelude::IteratorRandom;
-use rand::{thread_rng, Rng};
 
+use crate::{Evaluator, Num, uct_value};
 use crate::alisases::{LazyMctsNode, LazyMctsTree};
 use crate::mcts_node::MctsNode;
 use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
-use crate::{uct_value, EvaluatorBis, Num};
-use noisy_float::prelude::n64;
 
+/// A default backprop policy it will take the reward of the simulation and backkpropagate the
+/// result  to the branch nodes.
 pub struct DefaultBackProp {}
 
 impl<
@@ -39,6 +41,7 @@ impl<
     }
 }
 
+/// Simulating taking random moves a applying until the end.
 pub struct DefaultPlayout {}
 
 impl<T: GameTrait> Playout<T> for DefaultPlayout {
@@ -57,14 +60,15 @@ impl<T: GameTrait> Playout<T> for DefaultPlayout {
     }
 }
 
-pub struct DefaultLazyTreePolicy<State: GameTrait, EV: EvaluatorBis<State, A>, A: Clone + Default> {
+/// Explores at least once each child node, before going deeper.
+pub struct DefaultLazyTreePolicy<State: GameTrait, EV: Evaluator<State, A>, A: Clone + Default> {
     phantom_state: PhantomData<State>,
     phantom_a: PhantomData<A>,
     phantom_ev: PhantomData<EV>,
 }
 
-impl<State: GameTrait, EV: EvaluatorBis<State, A, Args = u32>, A: Clone + Default>
-    DefaultLazyTreePolicy<State, EV, A>
+impl<State: GameTrait, EV: Evaluator<State, A, Args=u32>, A: Clone + Default>
+DefaultLazyTreePolicy<State, EV, A>
 {
     pub fn select(
         mut tree: &mut LazyMctsTree<State, EV::Reward, A>,
@@ -112,8 +116,8 @@ impl<State: GameTrait, EV: EvaluatorBis<State, A, Args = u32>, A: Clone + Defaul
     }
 }
 
-impl<State: GameTrait, EV: EvaluatorBis<State, A, Args = u32>, A: Clone + Default>
-    LazyTreePolicy<State, EV, A> for DefaultLazyTreePolicy<State, EV, A>
+impl<State: GameTrait, EV: Evaluator<State, A, Args=u32>, A: Clone + Default>
+LazyTreePolicy<State, EV, A> for DefaultLazyTreePolicy<State, EV, A>
 {
     fn tree_policy(
         tree: &mut LazyMctsTree<State, EV::Reward, A>,
@@ -146,10 +150,11 @@ impl<State: GameTrait, EV: EvaluatorBis<State, A, Args = u32>, A: Clone + Defaul
     }
 }
 
+/// Uses UCT to evaluate nodes, and evaluates an endstate with 1 if the player won.
 pub struct DefaultUctEvaluator {}
 
-impl<State: GameTrait, AdditionalInfo: Clone + Default> EvaluatorBis<State, AdditionalInfo>
-    for DefaultUctEvaluator
+impl<State: GameTrait, AdditionalInfo: Clone + Default> Evaluator<State, AdditionalInfo>
+for DefaultUctEvaluator
 {
     type Args = u32;
     type Reward = u32;

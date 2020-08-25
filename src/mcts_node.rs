@@ -2,16 +2,17 @@ use std::fmt::{Debug, Error, Formatter};
 use std::ops::{Add, Deref, DerefMut, Div};
 
 use num_traits::{ToPrimitive, Zero};
+
 use crate::alisases::Nat;
 use crate::traits::GameTrait;
 
 #[derive(Clone)]
 pub struct MctsNode<T, Move, Reward, AdditionalInfo = ()>
-    where
-        Reward: Clone + Add + Div + Zero + ToPrimitive,
-        T: Clone,
-        Move: Clone,
-        AdditionalInfo: Clone + Default,
+where
+    Reward: Clone + Add + Div + Zero + ToPrimitive,
+    T: Clone,
+    Move: Clone,
+    AdditionalInfo: Clone + Default,
 {
     pub sum_rewards: Reward,
     pub n_visits: Nat,
@@ -75,12 +76,14 @@ impl<T: Debug, M, R: Debug, A: Debug> Debug for MctsNode<T, M, R, A>
         A: Clone + Default,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        write!(f, "{:?}",
-               (
-                   self.sum_rewards.clone(),
-                   self.n_visits,
-                   self.additional_info.clone()
-               )
+        write!(
+            f,
+            "{:?}",
+            (
+                self.sum_rewards.clone(),
+                self.n_visits,
+                self.additional_info.clone()
+            )
         )
     }
 }

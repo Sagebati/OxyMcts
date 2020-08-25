@@ -3,8 +3,8 @@ use std::marker::PhantomData;
 use num_traits::Zero;
 
 use crate::alisases::{LazyMctsNode, LazyMctsTree};
+use crate::Evaluator;
 use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
-use crate::EvaluatorBis;
 
 /// This is a special MCTS because it doesn't store the state in the node but instead stores the
 /// historic to the node.
@@ -13,7 +13,7 @@ pub struct LazyMcts<
     TP,
     PP,
     BP,
-    EV: EvaluatorBis<State, AddInfo>,
+    EV: Evaluator<State, AddInfo>,
     AddInfo: Clone + Default,
     SimulationResult = (),
 > where
@@ -40,10 +40,10 @@ impl<
         A: Clone + Default,
         PlayoutResult,
     > LazyMcts<State, TP, PP, BP, EV, A, PlayoutResult>
-where
-    PP: Playout<State>,
-    BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A, EV::Reward>,
-    EV: EvaluatorBis<State, A>,
+    where
+        PP: Playout<State>,
+        BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A, EV::Reward>,
+        EV: Evaluator<State, A>,
 {
     pub fn new(root_state: State) -> Self {
         Self::with_capacity(root_state, 0)
@@ -72,6 +72,7 @@ where
         }
     }
 
+    /// Executes one selection, expansion?, simulation, backpropagation.
     pub fn execute(&mut self, playout_args: PP::Args) {
         let (node_id, state) = TP::tree_policy(&mut self.tree, self.root_state.clone());
         let final_state = PP::playout(state, playout_args);
@@ -79,6 +80,7 @@ where
         BP::backprop(&mut self.tree, node_id, eval);
     }
 
+    /// Returns the best move from the root.
     pub fn best_move(&self) -> State::Move {
         let best_child = TP::best_child(
             &self.tree,
