@@ -1,6 +1,11 @@
 OxyMcts
 ===
 
+If you don't know what is monte carlo tree search, I bet you know about AlphaGo the program that beat the best Go player in the world. 
+Their approach was innovative because they used a neural network. but the neural network was not alone, the NN was "only" leading the MCTS. 
+ 
+ For more : [Wikipedia link](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search)
+
 Library to play with an monte carlo tree search, it's generic over the game. see `examples/tictactoe`.
 
 This lib is also generic over the implementation and modular. indeed a normal MCTS can be divided in four operations, 
