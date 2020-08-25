@@ -1,7 +1,5 @@
-use lib_mcts::{GameTrait, Evaluator, LazyMctsNode, Num, DefaultMcts, uct_value};
-use std::collections::{HashSet};
-use noisy_float::prelude::{n64};
-
+use lib_mcts::{DefaultMcts, GameTrait};
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, Default)]
 struct TicTacToe {
@@ -77,14 +75,15 @@ impl TicTacToe {
 
     // Return None is the game is not finished, if not return the winner
     pub fn finished(&self) -> Option<bool> {
-        self.sums_cols.iter()
+        self.sums_cols
+            .iter()
             .chain(self.sums_diags.iter())
             .chain(self.sums_rows.iter())
             .find(move |x| x.0 == self.n || x.1 == self.n)
             .map(move |x| match x {
                 (y, _) if self.n == *y => true,
                 (_, y) if self.n == *y => false,
-                _ => unreachable!()
+                _ => unreachable!(),
             })
     }
 }
@@ -92,7 +91,6 @@ impl TicTacToe {
 impl GameTrait for TicTacToe {
     type Player = bool;
     type Move = (usize, usize);
-    type Reward = i32;
 
     fn legals_moves(&self) -> Vec<Self::Move> {
         self.legal_moves()
@@ -119,29 +117,9 @@ impl GameTrait for TicTacToe {
     }
 }
 
-
-struct E {}
-
-impl Evaluator<()> for E {
-    type State = TicTacToe;
-    type LeafEval = i32;
-    type Args = u32;
-
-    fn eval_child(child: &LazyMctsNode<Self::State, ()>, _turn: &bool, parent_visit: &Self::Args) -> Num {
-        uct_value(*parent_visit, n64(child.sum_rewards as f64), child.n_visits)
-    }
-
-    fn evaluate_leaf(child: &Self::State, turn: &bool) -> Self::LeafEval {
-        if child.finished().unwrap() == *turn {
-            1
-        } else {
-            0
-        }
-    }
-}
-
 fn main() {
-    let mut mcts = DefaultMcts::<E>::new(TicTacToe::new(5)); for _ in 0..100000 {
+    let mut mcts = DefaultMcts::new(TicTacToe::new(5));
+    for _ in 0..100000 {
         mcts.execute(());
     }
     dbg!(mcts.best_move());
