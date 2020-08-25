@@ -21,6 +21,8 @@ pub trait GameTrait: Clone {
     fn is_final(&self) -> bool;
 
     fn do_move(&mut self, m: &Self::Move);
+
+    fn get_winner(&self) -> Self::Player;
 }
 
 pub trait Evaluator<AdditionalParameters: Clone + Default> {
@@ -36,6 +38,21 @@ pub trait Evaluator<AdditionalParameters: Clone + Default> {
     fn evaluate_leaf(
         child: &Self::State,
         turn: &<Self::State as GameTrait>::Player,
+    ) -> Self::LeafEval;
+}
+
+pub trait EvaluatorBis<State: GameTrait, AdditionalParameters: Clone + Default> {
+    type LeafEval: Clone + Add + Div + Zero + ToPrimitive;
+    type Args;
+
+    fn eval_child(
+        child: &LazyMctsNode<State, AdditionalParameters>,
+        turn: &State::Player,
+        args: &Self::Args,
+    ) -> Num;
+    fn evaluate_leaf(
+        child: State,
+        turn: &State::Player,
     ) -> Self::LeafEval;
 }
 

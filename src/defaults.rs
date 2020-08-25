@@ -9,6 +9,7 @@ use rand::{thread_rng, Rng};
 use crate::mcts_node::MctsNode;
 use crate::traits::{BackPropPolicy, GameTrait, Playout, Evaluator, LazyTreePolicy};
 use crate::alisases::{LazyMctsTree, LazyMctsNode};
+use crate::{EvaluatorBis, Num};
 
 pub struct DefaultBackProp {}
 
@@ -35,11 +36,9 @@ impl<T: Clone,
     }
 }
 
-pub struct DefaultPlayout<T: GameTrait> {
-    marker: PhantomData<T>,
-}
+pub struct DefaultPlayout {}
 
-impl<T: GameTrait> Playout<T> for DefaultPlayout<T> {
+impl<T: GameTrait> Playout<T> for DefaultPlayout {
     type Args = ();
 
     fn playout(mut state: T, _args: ()) -> T {
@@ -140,5 +139,23 @@ for DefaultLazyTreePolicy<EV, A>
             .max_by_key(|child| EV::eval_child(&child.value(), turn, &parent_visits))
             .unwrap()
             .id()
+    }
+}
+
+
+struct DefaultUctEvaluator {}
+
+impl<State: GameTrait, AdditionalInfo: Clone + Default> EvaluatorBis<State, AdditionalInfo> for
+DefaultUctEvaluator {
+    type LeafEval = u8;
+    type Args = u32;
+
+    fn eval_child(child: &LazyMctsNode<State, AdditionalInfo>, turn: &State::Player, parent_simulation:
+    &Self::Args) -> Num {
+        unimplemented!()
+    }
+
+    fn evaluate_leaf(child: State, turn: &State::Player) -> u8 {
+        unimplemented!()
     }
 }

@@ -12,7 +12,7 @@ mod defaults;
 mod alisases;
 
 pub type DefaultMcts<E: Evaluator<()>> = LazyMcts<DefaultLazyTreePolicy<E, ()>,
-    DefaultPlayout<E::State>, DefaultBackProp, E, ()>;
+    DefaultPlayout, DefaultBackProp, E, ()>;
 
 #[cfg(test)]
 mod tests {

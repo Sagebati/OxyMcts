@@ -1,4 +1,4 @@
-use lib_mcts::{GameTrait, Evaluator, LazyMctsNode, Num, LazyMctsTree, DefaultMcts, uct_value};
+use lib_mcts::{GameTrait, Evaluator, LazyMctsNode, Num, DefaultMcts, uct_value};
 use std::collections::{HashSet};
 use noisy_float::prelude::{n64};
 
@@ -112,6 +112,10 @@ impl GameTrait for TicTacToe {
 
     fn do_move(&mut self, m: &Self::Move) {
         self.play(*m);
+    }
+
+    fn get_winner(&self) -> Self::Player {
+        self.finished().unwrap()
     }
 }
 
