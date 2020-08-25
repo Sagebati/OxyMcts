@@ -3,7 +3,7 @@ use std::ops::{Add, AddAssign, Div};
 
 use ego_tree::{NodeId, Tree, NodeMut};
 use num_traits::{ToPrimitive, Zero};
-use rand::prelude::SliceRandom;
+use rand::prelude::{IteratorRandom};
 use rand::{thread_rng, Rng};
 
 use crate::mcts_node::MctsNode;
@@ -12,13 +12,11 @@ use crate::alisases::{LazyMctsTree, LazyMctsNode};
 
 pub struct DefaultBackProp {}
 
-impl<
-        T: Clone,
-        Move: Clone,
-        R: Add + AddAssign + Div + Clone + Zero + ToPrimitive,
-        A: Clone + Default,
-    > BackPropPolicy<T, Move, R, A, R> for DefaultBackProp
-{
+impl<T: Clone,
+    Move: Clone,
+    R: Add + AddAssign + Div + Clone + Zero + ToPrimitive,
+    A: Clone + Default,
+> BackPropPolicy<T, Move, R, A, R> for DefaultBackProp {
     fn backprop(tree: &mut Tree<MctsNode<T, Move, R, A>>, leaf: NodeId, reward: R) {
         let root_id = tree.root().id();
         let mut current_node_id = leaf;
@@ -48,9 +46,9 @@ impl<T: GameTrait> Playout<T> for DefaultPlayout<T> {
         while !state.is_final() {
             let m = state
                 .legals_moves()
+                .into_iter()
                 .choose(&mut thread_rng())
-                .unwrap()
-                .clone();
+                .unwrap();
             state.do_move(&m);
         }
         state
@@ -138,8 +136,7 @@ for DefaultLazyTreePolicy<EV, A>
     ) -> NodeId {
         let parent_node = tree.get(parent_id).unwrap();
         let parent_visits = parent_node.value().n_visits;
-        parent_node
-            .children()
+        parent_node.children()
             .max_by_key(|child| EV::eval_child(&child.value(), turn, &parent_visits))
             .unwrap()
             .id()

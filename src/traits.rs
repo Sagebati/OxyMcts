@@ -23,13 +23,13 @@ pub trait GameTrait: Clone {
     fn do_move(&mut self, m: &Self::Move);
 }
 
-pub trait Evaluator<A: Clone + Default> {
+pub trait Evaluator<AdditionalParameters: Clone + Default> {
     type State: GameTrait;
     type LeafEval: Clone + Add + Div + Zero + ToPrimitive;
     type Args;
 
     fn eval_child(
-        child: &LazyMctsNode<Self::State, A>,
+        child: &LazyMctsNode<Self::State, AdditionalParameters>,
         turn: &<Self::State as GameTrait>::Player,
         args: &Self::Args,
     ) -> Num;

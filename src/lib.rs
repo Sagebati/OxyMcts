@@ -1,7 +1,8 @@
-use crate::alisases::LazyMctsTree;
-use crate::tree_search::LazyMcts;
-use crate::defaults::{DefaultLazyTreePolicy, DefaultPlayout, DefaultBackProp};
-use crate::traits::Evaluator;
+pub use crate::alisases::*;
+pub use crate::tree_search::{LazyMcts};
+pub use crate::defaults::{DefaultLazyTreePolicy, DefaultPlayout, DefaultBackProp};
+pub use crate::traits::*;
+pub use crate::ops::*;
 
 mod mcts_node;
 mod ops;
@@ -10,7 +11,7 @@ mod tree_search;
 mod defaults;
 mod alisases;
 
-type DefaultMcts<E:Evaluator<()>> = LazyMcts<DefaultLazyTreePolicy<E, ()>,
+pub type DefaultMcts<E: Evaluator<()>> = LazyMcts<DefaultLazyTreePolicy<E, ()>,
     DefaultPlayout<E::State>, DefaultBackProp, E, ()>;
 
 #[cfg(test)]
