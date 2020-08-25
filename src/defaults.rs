@@ -17,11 +17,11 @@ use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
 pub struct DefaultBackProp {}
 
 impl<
-        T: Clone,
-        Move: Clone,
-        R: Add + AddAssign + Div + Clone + Zero + ToPrimitive,
-        A: Clone + Default,
-    > BackPropPolicy<T, Move, R, A, R> for DefaultBackProp
+    T: Clone,
+    Move: Clone,
+    R: Add + AddAssign + Div + Clone + Zero + ToPrimitive,
+    A: Clone + Default,
+> BackPropPolicy<T, Move, R, A> for DefaultBackProp
 {
     fn backprop(tree: &mut Tree<MctsNode<T, Move, R, A>>, leaf: NodeId, reward: R) {
         let root_id = tree.root().id();

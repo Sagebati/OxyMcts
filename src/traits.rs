@@ -83,12 +83,11 @@ pub trait BackPropPolicy<
     Move: Clone,
     Reward: Clone + Add + Div + Zero + ToPrimitive,
     AdditionalInfo: Clone + Default,
-    PlayoutResult,
 >
 {
     fn backprop(
         tree: &mut Tree<MctsNode<State, Move, Reward, AdditionalInfo>>,
         leaf: NodeId,
-        reward: PlayoutResult,
+        playout_result: Reward,
     );
 }

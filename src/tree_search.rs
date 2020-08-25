@@ -15,34 +15,30 @@ pub struct LazyMcts<
     BP,
     EV: Evaluator<State, AddInfo>,
     AddInfo: Clone + Default,
-    SimulationResult = (),
 > where
     PP: Playout<State>,
     TP: LazyTreePolicy<State, EV, AddInfo>,
-    BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, AddInfo, EV::Reward>,
+    BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, AddInfo>,
 {
     root_state: State,
     tree_policy: PhantomData<TP>,
     playout_policy: PhantomData<PP>,
     backprop_policy: PhantomData<BP>,
-    // Cannot put EV::REward in default parameter for SimulationResult.
-    simulation_t: PhantomData<SimulationResult>,
     evaluator: PhantomData<EV>,
     tree: LazyMctsTree<State, EV::Reward, AddInfo>,
 }
 
 impl<
-        State: GameTrait,
-        TP: LazyTreePolicy<State, EV, A>,
-        PP,
-        BP,
-        EV,
-        A: Clone + Default,
-        PlayoutResult,
-    > LazyMcts<State, TP, PP, BP, EV, A, PlayoutResult>
+    State: GameTrait,
+    TP: LazyTreePolicy<State, EV, A>,
+    PP,
+    BP,
+    EV,
+    A: Clone + Default,
+> LazyMcts<State, TP, PP, BP, EV, A>
     where
         PP: Playout<State>,
-        BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A, EV::Reward>,
+        BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A>,
         EV: Evaluator<State, A>,
 {
     pub fn new(root_state: State) -> Self {
@@ -67,7 +63,6 @@ impl<
             playout_policy: PhantomData,
             backprop_policy: PhantomData,
             evaluator: PhantomData,
-            simulation_t: PhantomData,
             tree,
         }
     }
