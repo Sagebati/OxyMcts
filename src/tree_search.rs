@@ -34,14 +34,8 @@ pub struct LazyMcts<
     tree: LazyMctsTree<State, EV::Reward, AddInfo>,
 }
 
-impl<
-    State: GameTrait,
-    TP: LazyTreePolicy<State, EV, A>,
-    PP,
-    BP,
-    EV,
-    A: Clone + Default,
-> LazyMcts<State, TP, PP, BP, EV, A>
+impl<State: GameTrait, TP: LazyTreePolicy<State, EV, A>, PP, BP, EV, A: Clone + Default>
+LazyMcts<State, TP, PP, BP, EV, A>
     where
         PP: Playout<State>,
         BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A>,

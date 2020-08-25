@@ -22,4 +22,3 @@ pub type DefaultMcts<State> = LazyMcts<
     DefaultUctEvaluator,
     (),
 >;
-
