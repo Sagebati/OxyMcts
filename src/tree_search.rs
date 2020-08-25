@@ -1,3 +1,5 @@
+use core::fmt;
+use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 
 use num_traits::Zero;
@@ -8,6 +10,7 @@ use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
 
 /// This is a special MCTS because it doesn't store the state in the node but instead stores the
 /// historic to the node.
+#[derive(Clone)]
 pub struct LazyMcts<
     State: GameTrait,
     TP,
@@ -90,5 +93,24 @@ impl<
             .last()
             .expect("The historic of the children of the root is empty, cannot happen")
             .clone()
+    }
+}
+
+impl<
+    State: GameTrait,
+    TP: LazyTreePolicy<State, EV, A>,
+    PP,
+    BP,
+    EV,
+    A: Clone + Default + Debug,
+> Debug for LazyMcts<State, TP, PP, BP, EV, A>
+    where
+        PP: Playout<State>,
+        BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A>,
+        EV: Evaluator<State, A>,
+        EV::Reward: Debug,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.write_str(&format!("{:?}", self.tree))
     }
 }

@@ -28,3 +28,4 @@ This tree doesn't store the "game" state in the tree's nodes instead it stores o
   
  ## TODO
  - maybe use an persistent List for the node historic
+ - use another libary for managing the tree

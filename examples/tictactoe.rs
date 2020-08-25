@@ -1,5 +1,6 @@
-use lib_mcts::{DefaultMcts, GameTrait};
 use std::collections::HashSet;
+
+use lib_mcts::{DefaultMcts, GameTrait};
 
 #[derive(Debug, Clone, Default)]
 struct TicTacToe {
@@ -119,8 +120,9 @@ impl GameTrait for TicTacToe {
 
 fn main() {
     let mut mcts = DefaultMcts::new(TicTacToe::new(5));
-    for _ in 0..100000 {
+    for _ in 0..10000 {
         mcts.execute(());
     }
     dbg!(mcts.best_move());
+    dbg!(mcts);
 }
