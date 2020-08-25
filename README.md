@@ -5,6 +5,8 @@ If you don't know what is monte carlo tree search, I bet you know about AlphaGo 
 Their approach was innovative because they used a neural network. but the neural network was not alone, the NN was "only" leading the MCTS. 
  
  For more : [Wikipedia link](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search)
+ 
+## Presentation
 
 Library to play with an monte carlo tree search, it's generic over the game. see `examples/tictactoe`.
 
@@ -16,7 +18,6 @@ are interchangeable. So anyone can implement his `tree policy` without touching 
 ## Implementation details
 This tree doesn't store the "game" state in the tree's nodes instead it stores only the historic of moves until this state. This approach
  can be beneficial if the "state" is an memory intensive struct. it will also helps for future parallelization.
- 
  
  ## At the moment
   - it's not parallel.
