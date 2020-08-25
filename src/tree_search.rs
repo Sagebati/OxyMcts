@@ -2,6 +2,9 @@ use core::fmt;
 use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 
+use ascii_tree::{Tree, write_tree};
+use ascii_tree::Tree::{Leaf, Node};
+use ego_tree::NodeId;
 use num_traits::Zero;
 
 use crate::alisases::{LazyMctsNode, LazyMctsTree};
@@ -93,6 +96,26 @@ impl<
             .last()
             .expect("The historic of the children of the root is empty, cannot happen")
             .clone()
+    }
+
+    pub fn write_tree(&self) -> String {
+        let tree = self.dfs(self.tree.root().id());
+        let mut output = String::new();
+        write_tree(&mut output, &tree).unwrap();
+        return output;
+    }
+
+    fn dfs(&self, node_id: NodeId) -> Tree {
+        let node = self.tree.get(node_id).unwrap();
+        if node.has_children() {
+            let mut nodes = vec![];
+            for c in node.children() {
+                nodes.push(self.dfs(c.id()))
+            }
+            Node(format!("{}", node.value().n_visits), nodes)
+        } else {
+            Leaf(vec![format!("{:}", node.value().n_visits)])
+        }
     }
 }
 

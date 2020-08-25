@@ -8,7 +8,12 @@ edition = "2018"
 
 [dependencies]
 ego-tree = "0.6.2"
-num-traits ="0.2.12"
+num-traits = "0.2.12"
 rand = "0.7.3"
 noisy_float = "0.1.12"
+ascii_tree = { version = "0.1.1", optional = true }
+
+[features]
+default = ["ascii-tree"]
+ascii-tree = ["ascii_tree"]
 

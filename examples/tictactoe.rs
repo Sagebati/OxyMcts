@@ -120,9 +120,9 @@ impl GameTrait for TicTacToe {
 
 fn main() {
     let mut mcts = DefaultMcts::new(TicTacToe::new(5));
-    for _ in 0..10000 {
+    for _ in 0..100000 {
         mcts.execute(());
     }
     dbg!(mcts.best_move());
-    dbg!(mcts);
+    println!("{}", mcts.write_tree());
 }

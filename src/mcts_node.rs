@@ -68,7 +68,7 @@ impl<T, M, R, A> DerefMut for MctsNode<T, M, R, A>
     }
 }
 
-impl<T: Debug, M, R: Debug, A: Debug> Debug for MctsNode<T, M, R, A>
+impl<T, M, R, A> Debug for MctsNode<T, M, R, A>
     where
         R: Clone + Add + Div + ToPrimitive + Zero,
         T: Clone,
@@ -76,15 +76,10 @@ impl<T: Debug, M, R: Debug, A: Debug> Debug for MctsNode<T, M, R, A>
         A: Clone + Default,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        write!(
-            f,
-            "{:?}",
-            (
-                self.sum_rewards.clone(),
-                self.n_visits,
-                self.additional_info.clone()
-            )
-        )
+        f.debug_struct("MctsNode")
+            .field("n_visits", &self.n_visits)
+            .field("unvisited_moves_len", &self.unvisited_moves.len())
+            .finish()
     }
 }
 
