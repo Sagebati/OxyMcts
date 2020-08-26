@@ -1,4 +1,10 @@
 use std::collections::HashSet;
+use std::fmt::{Display, Formatter};
+use std::fmt;
+
+use rand::prelude::SliceRandom;
+use rand::thread_rng;
+use rayon::prelude::*;
 
 use lib_mcts::{DefaultMcts, GameTrait};
 
@@ -124,11 +130,87 @@ impl GameTrait for TicTacToe {
     }
 }
 
-fn main() {
-    let mut mcts = DefaultMcts::new(TicTacToe::new(3));
-    for _ in 0..1000 {
+impl Display for TicTacToe {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let mut str_final = String::new();
+        for i in 0..self.n {
+            str_final.push_str("|");
+            for j in 0..self.n {
+                let s = match self.grid[i][j] {
+                    0 => " ",
+                    1 => "X",
+                    2 => "0",
+                    _ => unreachable!()
+                };
+                str_final.push_str(s);
+                str_final.push_str("|");
+            }
+            str_final.push_str("\n");
+        }
+        write!(f, "{}", str_final)
+    }
+}
+
+fn mcts_agent<Game: GameTrait>(state: &Game, playouts: usize) -> Game::Move {
+    let mut mcts = DefaultMcts::new(state);
+    for _ in 0..playouts {
         mcts.execute(());
     }
-    dbg!(mcts.best_move());
-    println!("{}", mcts.write_tree());
+    mcts.best_move()
 }
+
+fn random_agent<Game: GameTrait>(state: &Game) -> Game::Move {
+    state.legals_moves().choose(&mut thread_rng()).unwrap().clone()
+}
+
+fn run_a_game(n: usize) -> u8 {
+    let mut tictactoe = TicTacToe::new(n);
+    while !tictactoe.is_final() {
+        let move_random = random_agent(&tictactoe);
+        tictactoe.play(move_random);
+        if !tictactoe.is_final() {
+            let move_mcts = mcts_agent(&tictactoe, 1000);
+            tictactoe.play(move_mcts);
+        }
+    }
+    return tictactoe.get_winner();
+}
+
+fn main() {
+    println!("Player 1: Cross");
+    println!("Player 2: Circle");
+    let mut tictactoe = TicTacToe::new(6);
+    while !tictactoe.is_final() {
+        println!("Random turn: ");
+        let move_random = dbg!(random_agent(&tictactoe));
+        tictactoe.play(move_random);
+        println!("{}", tictactoe);
+        if !tictactoe.is_final() {
+            println!("Mcts turn: ");
+            let move_mcts = dbg!(mcts_agent(&tictactoe, 10000));
+            tictactoe.play(move_mcts);
+            println!("{}", tictactoe);
+        }
+    }
+    println!("Winner: {}", tictactoe.get_winner());
+    //println!("{}", mcts.write_tree());
+    let number_of_games = 1000;
+    let stats = (0..number_of_games)
+        .into_par_iter()
+        .map(|_| {
+            let idx = run_a_game(5) as usize;
+            let mut arr = [0, 0, 0];
+            arr[idx] = 1;
+            arr
+        })
+        .reduce(|| [0, 0, 0], |acc, x| {
+            [acc[0] + x[0], acc[1] + x[1], acc[2] + x[2]]
+        });
+
+    println!("With C = sqrt(2), 10000 rollouts, in a tictactoe of dim 5, and versus a random bot \
+    the mcts wins {}% of time and there is {}% nulls", (stats[2] as f64 / number_of_games as f64)
+        * 100., (stats[0] as f64 / number_of_games as f64) * 100.)
+}
+
+
+

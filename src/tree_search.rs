@@ -16,7 +16,7 @@ use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
 /// historic to the node.
 ///
 #[derive(Clone)]
-pub struct LazyMcts<State, TP, PP, BP, EV, AddInfo, >
+pub struct LazyMcts<'a, State, TP, PP, BP, EV, AddInfo, >
     where
         State: GameTrait,
         TP: LazyTreePolicy<State, EV, AddInfo>,
@@ -25,7 +25,7 @@ pub struct LazyMcts<State, TP, PP, BP, EV, AddInfo, >
         EV: Evaluator<State, AddInfo>,
         AddInfo: Clone + Default
 {
-    root_state: State,
+    root_state: &'a State,
     tree_policy: PhantomData<TP>,
     playout_policy: PhantomData<PP>,
     backprop_policy: PhantomData<BP>,
@@ -33,8 +33,8 @@ pub struct LazyMcts<State, TP, PP, BP, EV, AddInfo, >
     tree: LazyMctsTree<State, EV::Reward, AddInfo>,
 }
 
-impl<State, TP, PP, BP, EV, A>
-LazyMcts<State, TP, PP, BP, EV, A>
+impl<'a, State, TP, PP, BP, EV, A>
+LazyMcts<'a, State, TP, PP, BP, EV, A>
     where
         State: GameTrait,
         TP: LazyTreePolicy<State, EV, A>,
@@ -44,11 +44,11 @@ LazyMcts<State, TP, PP, BP, EV, A>
         EV::Reward: Zero + Add + Div + ToPrimitive + Clone + Display,
         A: Clone + Default
 {
-    pub fn new(root_state: State) -> Self {
+    pub fn new(root_state: &'a State) -> Self {
         Self::with_capacity(root_state, 0)
     }
 
-    pub fn with_capacity(root_state: State, capacity: usize) -> Self {
+    pub fn with_capacity(root_state: &'a State, capacity: usize) -> Self {
         let tree = LazyMctsTree::<State, EV::Reward, A>::with_capacity(
             LazyMctsNode::<State, EV::Reward, A> {
                 sum_rewards: Zero::zero(),
@@ -116,7 +116,7 @@ LazyMcts<State, TP, PP, BP, EV, A>
     }
 }
 
-impl<State, TP, PP, BP, EV, A> Debug for LazyMcts<State, TP, PP, BP, EV, A>
+impl<State, TP, PP, BP, EV, A> Debug for LazyMcts<'_, State, TP, PP, BP, EV, A>
     where
         State: GameTrait,
         TP: LazyTreePolicy<State, EV, A>,

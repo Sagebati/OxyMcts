@@ -29,3 +29,7 @@ This tree doesn't store the "game" state in the tree's nodes instead it stores o
  ## TODO
  - maybe use an persistent List for the node historic
  - use another libary for managing the tree
+ - specify mcts hyper parameters at  runtime at not a compilation.
+
+# Experiment
+With C = sqrt(2), 10000 rollouts, in a tictactoe of dim 5, and versus a random bot the mcts wins 70% of time and there is 20.9% nulls. (see examples/tictactoe)

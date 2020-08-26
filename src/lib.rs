@@ -14,7 +14,7 @@ mod tree_search;
 
 /// This mcts uses UCT, naive simulation applying random moves until a final state, and scoring 1
 /// if the player won.
-pub type DefaultMcts<State> = LazyMcts<
+pub type DefaultMcts<'a, State> = LazyMcts<'a,
     State,
     DefaultLazyTreePolicy<State, DefaultUctEvaluator, ()>,
     DefaultPlayout,
