@@ -1,11 +1,13 @@
-pub use crate::alisases::*;
+pub use crate::aliases::*;
 use crate::defaults::DefaultUctEvaluator;
 pub use crate::defaults::{DefaultBackProp, DefaultLazyTreePolicy, DefaultPlayout};
 pub use crate::ops::*;
 pub use crate::traits::*;
 pub use crate::tree_search::LazyMcts;
+pub use crate::agents::*;
 
-mod alisases;
+mod aliases;
+mod agents;
 mod defaults;
 mod mcts_node;
 mod ops;

@@ -7,7 +7,7 @@ use num_traits::{FloatConst, ToPrimitive, Zero};
 use rand::prelude::IteratorRandom;
 use rand::{thread_rng, Rng};
 
-use crate::alisases::{LazyMctsNode, LazyMctsTree};
+use crate::aliases::{LazyMctsNode, LazyMctsTree};
 use crate::mcts_node::MctsNode;
 use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
 use crate::{uct_value, Evaluator, Num};

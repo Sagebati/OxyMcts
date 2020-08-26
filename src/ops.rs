@@ -1,6 +1,6 @@
 use noisy_float::prelude::{n64, Float};
 
-use crate::alisases::{Nat, Num};
+use crate::aliases::{Nat, Num};
 
 /// Calculates the uct_value.
 #[inline]

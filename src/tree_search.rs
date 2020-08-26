@@ -8,7 +8,7 @@ use ascii_tree::{write_tree, Tree};
 use ego_tree::NodeId;
 use num_traits::{ToPrimitive, Zero};
 
-use crate::alisases::{LazyMctsNode, LazyMctsTree};
+use crate::aliases::{LazyMctsNode, LazyMctsTree};
 use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
 use crate::Evaluator;
 

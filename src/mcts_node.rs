@@ -3,7 +3,7 @@ use std::ops::{Add, Deref, DerefMut, Div};
 
 use num_traits::{ToPrimitive, Zero};
 
-use crate::alisases::Nat;
+use crate::aliases::Nat;
 use crate::traits::GameTrait;
 
 #[derive(Clone)]

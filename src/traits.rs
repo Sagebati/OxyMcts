@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use ego_tree::{NodeId, Tree};
 
-use crate::alisases::{LazyMctsNode, LazyMctsTree, Num};
+use crate::aliases::{LazyMctsNode, LazyMctsTree, Num};
 use crate::mcts_node::MctsNode;
 
 pub trait GameTrait: Clone {

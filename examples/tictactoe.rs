@@ -2,11 +2,9 @@ use std::collections::HashSet;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
-use rand::prelude::SliceRandom;
-use rand::thread_rng;
 use rayon::prelude::*;
 
-use lib_mcts::{DefaultMcts, GameTrait};
+use oxymcts::{DefaultMcts, GameTrait, random_agent, mcts_agent};
 
 #[derive(Debug, Clone, Default)]
 struct TicTacToe {
