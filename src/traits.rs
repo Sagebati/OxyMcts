@@ -1,8 +1,6 @@
 use std::fmt::Debug;
-use std::ops::{Add, Div};
 
 use ego_tree::{NodeId, Tree};
-use num_traits::{ToPrimitive, Zero};
 
 use crate::alisases::{LazyMctsNode, LazyMctsTree, Num};
 use crate::mcts_node::MctsNode;
@@ -32,7 +30,7 @@ pub trait GameTrait: Clone {
 
 pub trait Evaluator<State: GameTrait, AdditionalInfo: Clone + Default> {
     type Args;
-    type Reward: Clone + Add + Div + Zero + ToPrimitive;
+    type Reward: Clone;
 
     /// Evaluates each node of the monte carlo tree search.
     /// for ex: using UCT
@@ -81,7 +79,7 @@ pub trait LazyTreePolicy<State: GameTrait, EV: Evaluator<State, A>, A: Clone + D
 pub trait BackPropPolicy<
     State: Clone,
     Move: Clone,
-    Reward: Clone + Add + Div + Zero + ToPrimitive,
+    Reward: Clone,
     AdditionalInfo: Clone + Default,
 >
 {

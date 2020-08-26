@@ -5,7 +5,7 @@ use lib_mcts::{DefaultMcts, GameTrait};
 #[derive(Debug, Clone, Default)]
 struct TicTacToe {
     /// true cross, false circle
-    turn: bool,
+    turn: u8,
     grid: Vec<Vec<u8>>,
     sums_cols: Vec<(usize, usize)>,
     sums_diags: [(usize, usize); 2],
@@ -23,7 +23,7 @@ impl TicTacToe {
         }
         let coordinates_2nd_diag = coordinates_2nd_diag.into_iter().collect();
         TicTacToe {
-            turn: true,
+            turn: 1,
             grid: vec![vec![0; n]; n],
             sums_cols: vec![(0, 0); n],
             sums_diags: [(0, 0); 2],
@@ -33,7 +33,7 @@ impl TicTacToe {
         }
     }
 
-    pub fn get_turn(&self) -> bool {
+    pub fn get_turn(&self) -> u8 {
         self.turn
     }
 
@@ -51,46 +51,52 @@ impl TicTacToe {
     }
 
     pub fn play(&mut self, p: (usize, usize)) {
-        self.grid[p.0][p.1] = if self.turn {
-            self.sums_cols[p.0].0 += 1;
-            self.sums_rows[p.1].0 += 1;
+        self.grid[p.0][p.1] = if self.turn == 1 {
+            self.sums_rows[p.0].0 += 1;
+            self.sums_cols[p.1].0 += 1;
             if p.0 == p.1 {
                 self.sums_diags[0].0 += 1;
             }
             if self.coordinates_2nd_diag.contains(&p) {
                 self.sums_diags[1].0 += 1;
             }
+            self.turn = 2;
             1
         } else {
-            self.sums_cols[p.0].1 += 1;
-            self.sums_rows[p.1].1 += 1;
+            self.sums_rows[p.0].1 += 1;
+            self.sums_cols[p.1].1 += 1;
             if p.0 == p.1 {
                 self.sums_diags[0].1 += 1;
             }
             if self.coordinates_2nd_diag.contains(&p) {
                 self.sums_diags[1].1 += 1;
             }
+            self.turn = 1;
             2
         };
     }
 
-    // Return None is the game is not finished, if not return the winner
-    pub fn finished(&self) -> Option<bool> {
+    pub fn is_final(&self) -> bool {
+        self.get_winner() != 0 || self.legal_moves().is_empty()
+    }
+
+    /// Return non if the game nobody won
+    pub fn get_winner(&self) -> u8 {
         self.sums_cols
             .iter()
             .chain(self.sums_diags.iter())
             .chain(self.sums_rows.iter())
             .find(move |x| x.0 == self.n || x.1 == self.n)
             .map(move |x| match x {
-                (y, _) if self.n == *y => true,
-                (_, y) if self.n == *y => false,
+                (y, _) if self.n == *y => 1,
+                (_, y) if self.n == *y => 2,
                 _ => unreachable!(),
-            })
+            }).unwrap_or(0)
     }
 }
 
 impl GameTrait for TicTacToe {
-    type Player = bool;
+    type Player = u8;
     type Move = (usize, usize);
 
     fn legals_moves(&self) -> Vec<Self::Move> {
@@ -106,7 +112,7 @@ impl GameTrait for TicTacToe {
     }
 
     fn is_final(&self) -> bool {
-        self.finished().is_some()
+        TicTacToe::is_final(self)
     }
 
     fn do_move(&mut self, m: &Self::Move) {
@@ -114,13 +120,13 @@ impl GameTrait for TicTacToe {
     }
 
     fn get_winner(&self) -> Self::Player {
-        self.finished().unwrap()
+        TicTacToe::get_winner(self)
     }
 }
 
 fn main() {
-    let mut mcts = DefaultMcts::new(TicTacToe::new(5));
-    for _ in 0..100000 {
+    let mut mcts = DefaultMcts::new(TicTacToe::new(3));
+    for _ in 0..1000 {
         mcts.execute(());
     }
     dbg!(mcts.best_move());

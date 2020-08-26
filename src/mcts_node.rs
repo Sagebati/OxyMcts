@@ -9,7 +9,7 @@ use crate::traits::GameTrait;
 #[derive(Clone)]
 pub struct MctsNode<T, Move, Reward, AdditionalInfo = ()>
 where
-    Reward: Clone + Add + Div + Zero + ToPrimitive,
+    Reward: Clone,
     T: Clone,
     Move: Clone,
     AdditionalInfo: Clone + Default,
@@ -26,7 +26,7 @@ where
 
 impl<T, Move, Reward, AdditionalInfo> MctsNode<T, Move, Reward, AdditionalInfo>
     where
-        Reward: Clone + Add + Div + Zero + ToPrimitive,
+        Reward: Clone,
         T: Clone,
         Move: Clone,
         AdditionalInfo: Clone + Default,
