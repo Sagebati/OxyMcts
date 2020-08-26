@@ -3,27 +3,27 @@ use std::fmt::{Debug, Display, Formatter};
 use std::marker::PhantomData;
 use std::ops::{Add, Div};
 
-use ascii_tree::{Tree, write_tree};
 use ascii_tree::Tree::{Leaf, Node};
+use ascii_tree::{write_tree, Tree};
 use ego_tree::NodeId;
 use num_traits::{ToPrimitive, Zero};
 
 use crate::alisases::{LazyMctsNode, LazyMctsTree};
-use crate::Evaluator;
 use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
+use crate::Evaluator;
 
 /// This is a special MCTS because it doesn't store the state in the node but instead stores the
 /// historic to the node.
 ///
 #[derive(Clone)]
-pub struct LazyMcts<'a, State, TP, PP, BP, EV, AddInfo, >
-    where
-        State: GameTrait,
-        TP: LazyTreePolicy<State, EV, AddInfo>,
-        PP: Playout<State>,
-        BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, AddInfo>,
-        EV: Evaluator<State, AddInfo>,
-        AddInfo: Clone + Default
+pub struct LazyMcts<'a, State, TP, PP, BP, EV, AddInfo>
+where
+    State: GameTrait,
+    TP: LazyTreePolicy<State, EV, AddInfo>,
+    PP: Playout<State>,
+    BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, AddInfo>,
+    EV: Evaluator<State, AddInfo>,
+    AddInfo: Clone + Default,
 {
     root_state: &'a State,
     tree_policy: PhantomData<TP>,
@@ -33,16 +33,15 @@ pub struct LazyMcts<'a, State, TP, PP, BP, EV, AddInfo, >
     tree: LazyMctsTree<State, EV::Reward, AddInfo>,
 }
 
-impl<'a, State, TP, PP, BP, EV, A>
-LazyMcts<'a, State, TP, PP, BP, EV, A>
-    where
-        State: GameTrait,
-        TP: LazyTreePolicy<State, EV, A>,
-        PP: Playout<State>,
-        BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A>,
-        EV: Evaluator<State, A>,
-        EV::Reward: Zero + Add + Div + ToPrimitive + Clone + Display,
-        A: Clone + Default
+impl<'a, State, TP, PP, BP, EV, A> LazyMcts<'a, State, TP, PP, BP, EV, A>
+where
+    State: GameTrait,
+    TP: LazyTreePolicy<State, EV, A>,
+    PP: Playout<State>,
+    BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A>,
+    EV: Evaluator<State, A>,
+    EV::Reward: Zero + Add + Div + ToPrimitive + Clone + Display,
+    A: Clone + Default,
 {
     pub fn new(root_state: &'a State) -> Self {
         Self::with_capacity(root_state, 0)
@@ -109,22 +108,29 @@ LazyMcts<'a, State, TP, PP, BP, EV, A>
             for c in node.children() {
                 nodes.push(self.dfs(c.id()))
             }
-            Node(format!("{};{}", node.value().n_visits, node.value().sum_rewards), nodes)
+            Node(
+                format!("{};{}", node.value().n_visits, node.value().sum_rewards),
+                nodes,
+            )
         } else {
-            Leaf(vec![format!("{};{}", node.value().n_visits, node.value().sum_rewards)])
+            Leaf(vec![format!(
+                "{};{}",
+                node.value().n_visits,
+                node.value().sum_rewards
+            )])
         }
     }
 }
 
 impl<State, TP, PP, BP, EV, A> Debug for LazyMcts<'_, State, TP, PP, BP, EV, A>
-    where
-        State: GameTrait,
-        TP: LazyTreePolicy<State, EV, A>,
-        PP: Playout<State>,
-        BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A>,
-        EV: Evaluator<State, A>,
-        EV::Reward: Debug + Div + ToPrimitive + Zero,
-        A: Clone + Default + Debug
+where
+    State: GameTrait,
+    TP: LazyTreePolicy<State, EV, A>,
+    PP: Playout<State>,
+    BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A>,
+    EV: Evaluator<State, A>,
+    EV::Reward: Debug + Div + ToPrimitive + Zero,
+    A: Clone + Default + Debug,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.write_str(&format!("{:?}", self.tree))

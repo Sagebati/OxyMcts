@@ -1,6 +1,6 @@
 use std::collections::HashSet;
-use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::fmt::{Display, Formatter};
 
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
@@ -97,7 +97,8 @@ impl TicTacToe {
                 (y, _) if self.n == *y => 1,
                 (_, y) if self.n == *y => 2,
                 _ => unreachable!(),
-            }).unwrap_or(0)
+            })
+            .unwrap_or(0)
     }
 }
 
@@ -140,7 +141,7 @@ impl Display for TicTacToe {
                     0 => " ",
                     1 => "X",
                     2 => "0",
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 };
                 str_final.push_str(s);
                 str_final.push_str("|");
@@ -149,18 +150,6 @@ impl Display for TicTacToe {
         }
         write!(f, "{}", str_final)
     }
-}
-
-fn mcts_agent<Game: GameTrait>(state: &Game, playouts: usize) -> Game::Move {
-    let mut mcts = DefaultMcts::new(state);
-    for _ in 0..playouts {
-        mcts.execute(());
-    }
-    mcts.best_move()
-}
-
-fn random_agent<Game: GameTrait>(state: &Game) -> Game::Move {
-    state.legals_moves().choose(&mut thread_rng()).unwrap().clone()
 }
 
 fn run_a_game(n: usize) -> u8 {
@@ -203,14 +192,15 @@ fn main() {
             arr[idx] = 1;
             arr
         })
-        .reduce(|| [0, 0, 0], |acc, x| {
-            [acc[0] + x[0], acc[1] + x[1], acc[2] + x[2]]
-        });
+        .reduce(
+            || [0, 0, 0],
+            |acc, x| [acc[0] + x[0], acc[1] + x[1], acc[2] + x[2]],
+        );
 
-    println!("With C = sqrt(2), 10000 rollouts, in a tictactoe of dim 5, and versus a random bot \
-    the mcts wins {}% of time and there is {}% nulls", (stats[2] as f64 / number_of_games as f64)
-        * 100., (stats[0] as f64 / number_of_games as f64) * 100.)
+    println!(
+        "With C = sqrt(2), 10000 rollouts, in a tictactoe of dim 5, and versus a random bot \
+    the mcts wins {}% of time and there is {}% nulls",
+        (stats[2] as f64 / number_of_games as f64) * 100.,
+        (stats[0] as f64 / number_of_games as f64) * 100.
+    )
 }
-
-
-

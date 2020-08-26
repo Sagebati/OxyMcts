@@ -76,12 +76,7 @@ pub trait LazyTreePolicy<State: GameTrait, EV: Evaluator<State, A>, A: Clone + D
     ) -> NodeId;
 }
 
-pub trait BackPropPolicy<
-    State: Clone,
-    Move: Clone,
-    Reward: Clone,
-    AdditionalInfo: Clone + Default,
->
+pub trait BackPropPolicy<State: Clone, Move: Clone, Reward: Clone, AdditionalInfo: Clone + Default>
 {
     fn backprop(
         tree: &mut Tree<MctsNode<State, Move, Reward, AdditionalInfo>>,

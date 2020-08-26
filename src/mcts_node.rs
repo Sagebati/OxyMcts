@@ -25,11 +25,11 @@ where
 }
 
 impl<T, Move, Reward, AdditionalInfo> MctsNode<T, Move, Reward, AdditionalInfo>
-    where
-        Reward: Clone,
-        T: Clone,
-        Move: Clone,
-        AdditionalInfo: Clone + Default,
+where
+    Reward: Clone,
+    T: Clone,
+    Move: Clone,
+    AdditionalInfo: Clone + Default,
 {
     #[inline]
     pub fn can_add_child(&self) -> bool {
@@ -43,11 +43,11 @@ impl<T, Move, Reward, AdditionalInfo> MctsNode<T, Move, Reward, AdditionalInfo>
 }
 
 impl<T, M, R, A> Deref for MctsNode<T, M, R, A>
-    where
-        R: Clone + Add + Div + ToPrimitive + Zero,
-        T: Clone + GameTrait,
-        M: Clone,
-        A: Clone + Default,
+where
+    R: Clone + Add + Div + ToPrimitive + Zero,
+    T: Clone + GameTrait,
+    M: Clone,
+    A: Clone + Default,
 {
     type Target = T;
 
@@ -57,11 +57,11 @@ impl<T, M, R, A> Deref for MctsNode<T, M, R, A>
 }
 
 impl<T, M, R, A> DerefMut for MctsNode<T, M, R, A>
-    where
-        R: Clone + Add + Div + Zero + ToPrimitive,
-        T: Clone + GameTrait,
-        M: Clone,
-        A: Clone + Default,
+where
+    R: Clone + Add + Div + Zero + ToPrimitive,
+    T: Clone + GameTrait,
+    M: Clone,
+    A: Clone + Default,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.state
@@ -69,11 +69,11 @@ impl<T, M, R, A> DerefMut for MctsNode<T, M, R, A>
 }
 
 impl<T, M, R, A> Debug for MctsNode<T, M, R, A>
-    where
-        R: Clone + Add + Div + ToPrimitive + Zero,
-        T: Clone,
-        M: Clone,
-        A: Clone + Default,
+where
+    R: Clone + Add + Div + ToPrimitive + Zero,
+    T: Clone,
+    M: Clone,
+    A: Clone + Default,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         f.debug_struct("MctsNode")
@@ -85,11 +85,11 @@ impl<T, M, R, A> Debug for MctsNode<T, M, R, A>
 
 /// Unstable
 impl<T, M, R, A> PartialEq for MctsNode<T, M, R, A>
-    where
-        R: Clone + Add + Div + Zero + ToPrimitive,
-        T: Clone,
-        M: Clone,
-        A: Clone + Default,
+where
+    R: Clone + Add + Div + Zero + ToPrimitive,
+    T: Clone,
+    M: Clone,
+    A: Clone + Default,
 {
     fn eq(&self, other: &Self) -> bool {
         self.hash == other.hash

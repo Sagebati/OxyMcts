@@ -1,6 +1,6 @@
 pub use crate::alisases::*;
-pub use crate::defaults::{DefaultBackProp, DefaultLazyTreePolicy, DefaultPlayout};
 use crate::defaults::DefaultUctEvaluator;
+pub use crate::defaults::{DefaultBackProp, DefaultLazyTreePolicy, DefaultPlayout};
 pub use crate::ops::*;
 pub use crate::traits::*;
 pub use crate::tree_search::LazyMcts;
@@ -14,7 +14,8 @@ mod tree_search;
 
 /// This mcts uses UCT, naive simulation applying random moves until a final state, and scoring 1
 /// if the player won.
-pub type DefaultMcts<'a, State> = LazyMcts<'a,
+pub type DefaultMcts<'a, State> = LazyMcts<
+    'a,
     State,
     DefaultLazyTreePolicy<State, DefaultUctEvaluator, ()>,
     DefaultPlayout,

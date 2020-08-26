@@ -4,24 +4,24 @@ use std::ops::{Add, AddAssign, Div};
 use ego_tree::{NodeId, NodeMut, Tree};
 use noisy_float::prelude::n64;
 use num_traits::{FloatConst, ToPrimitive, Zero};
-use rand::{Rng, thread_rng};
 use rand::prelude::IteratorRandom;
+use rand::{thread_rng, Rng};
 
-use crate::{Evaluator, Num, uct_value};
 use crate::alisases::{LazyMctsNode, LazyMctsTree};
 use crate::mcts_node::MctsNode;
 use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
+use crate::{uct_value, Evaluator, Num};
 
 /// A default backprop policy it will take the reward of the simulation and backkpropagate the
 /// result  to the branch nodes.
 pub struct DefaultBackProp {}
 
 impl<
-    T: Clone,
-    Move: Clone,
-    R: Add + AddAssign + Div + Clone + Zero + ToPrimitive,
-    A: Clone + Default,
-> BackPropPolicy<T, Move, R, A> for DefaultBackProp
+        T: Clone,
+        Move: Clone,
+        R: Add + AddAssign + Div + Clone + Zero + ToPrimitive,
+        A: Clone + Default,
+    > BackPropPolicy<T, Move, R, A> for DefaultBackProp
 {
     fn backprop(tree: &mut Tree<MctsNode<T, Move, R, A>>, leaf: NodeId, reward: R) {
         let root_id = tree.root().id();
@@ -67,8 +67,10 @@ pub struct DefaultLazyTreePolicy<State: GameTrait, EV: Evaluator<State, A>, A: C
     phantom_ev: PhantomData<EV>,
 }
 
-impl<State: GameTrait, EV: Evaluator<State, A, Args=(u32, f64)>, A: Clone + Default>
-DefaultLazyTreePolicy<State, EV, A> where EV::Reward: Div + ToPrimitive + Add + Zero
+impl<State: GameTrait, EV: Evaluator<State, A, Args = (u32, f64)>, A: Clone + Default>
+    DefaultLazyTreePolicy<State, EV, A>
+where
+    EV::Reward: Div + ToPrimitive + Add + Zero,
 {
     pub fn select(
         mut tree: &mut LazyMctsTree<State, EV::Reward, A>,
@@ -116,9 +118,10 @@ DefaultLazyTreePolicy<State, EV, A> where EV::Reward: Div + ToPrimitive + Add + 
     }
 }
 
-impl<State: GameTrait, EV: Evaluator<State, A, Args=(u32, f64)>, A: Clone + Default>
-LazyTreePolicy<State, EV, A> for DefaultLazyTreePolicy<State, EV, A> where EV::Reward: Div + Add
-+ ToPrimitive + Zero
+impl<State: GameTrait, EV: Evaluator<State, A, Args = (u32, f64)>, A: Clone + Default>
+    LazyTreePolicy<State, EV, A> for DefaultLazyTreePolicy<State, EV, A>
+where
+    EV::Reward: Div + Add + ToPrimitive + Zero,
 {
     fn tree_policy(
         tree: &mut LazyMctsTree<State, EV::Reward, A>,
@@ -143,7 +146,8 @@ LazyTreePolicy<State, EV, A> for DefaultLazyTreePolicy<State, EV, A> where EV::R
     ) -> NodeId {
         let parent_node = tree.get(parent_id).unwrap();
         let n_visits = parent_node.value().n_visits;
-        parent_node.children()
+        parent_node
+            .children()
             .max_by_key(|child| EV::eval_child(&child.value(), turn, &(n_visits, f64::SQRT_2())))
             .unwrap()
             .id()
@@ -154,7 +158,7 @@ LazyTreePolicy<State, EV, A> for DefaultLazyTreePolicy<State, EV, A> where EV::R
 pub struct DefaultUctEvaluator {}
 
 impl<State: GameTrait, AdditionalInfo: Clone + Default> Evaluator<State, AdditionalInfo>
-for DefaultUctEvaluator
+    for DefaultUctEvaluator
 {
     type Args = (u32, f64);
     type Reward = u32;

@@ -1,4 +1,4 @@
-use noisy_float::prelude::{Float, n64};
+use noisy_float::prelude::{n64, Float};
 
 use crate::alisases::{Nat, Num};
 
