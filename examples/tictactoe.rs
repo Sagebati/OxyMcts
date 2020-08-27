@@ -4,7 +4,8 @@ use std::fmt::{Display, Formatter};
 
 use rayon::prelude::*;
 
-use oxymcts::{DefaultMcts, GameTrait, random_agent, mcts_agent};
+use oxymcts::{GameTrait, random_agent, mcts_uct_agent};
+use num_traits::FloatConst;
 
 #[derive(Debug, Clone, Default)]
 struct TicTacToe {
@@ -150,22 +151,22 @@ impl Display for TicTacToe {
     }
 }
 
-fn run_a_game(n: usize) -> u8 {
+fn run_a_game(n: usize, c: f64) -> u8 {
     let mut tictactoe = TicTacToe::new(n);
     while !tictactoe.is_final() {
-        let move_random = random_agent(&tictactoe);
-        tictactoe.play(move_random);
+        let m = random_agent(&tictactoe);
+        tictactoe.play(m);
         if !tictactoe.is_final() {
-            let move_mcts = mcts_agent(&tictactoe, 1000);
-            tictactoe.play(move_mcts);
+            let m = mcts_uct_agent(&tictactoe, 1000, c);
+            tictactoe.play(m);
         }
     }
     return tictactoe.get_winner();
 }
 
 fn main() {
-    println!("Player 1: Cross");
-    println!("Player 2: Circle");
+    println!("Player 1: Cross (Random bot)");
+    println!("Player 2: Circle (MCTS)");
     let mut tictactoe = TicTacToe::new(6);
     while !tictactoe.is_final() {
         println!("Random turn: ");
@@ -174,7 +175,7 @@ fn main() {
         println!("{}", tictactoe);
         if !tictactoe.is_final() {
             println!("Mcts turn: ");
-            let move_mcts = dbg!(mcts_agent(&tictactoe, 10000));
+            let move_mcts = dbg!(mcts_uct_agent(&tictactoe, 1000, f64::SQRT_2()));
             tictactoe.play(move_mcts);
             println!("{}", tictactoe);
         }
@@ -182,10 +183,12 @@ fn main() {
     println!("Winner: {}", tictactoe.get_winner());
     //println!("{}", mcts.write_tree());
     let number_of_games = 1000;
+    let dimension = 6;
+    let c = f64::SQRT_2();
     let stats = (0..number_of_games)
         .into_par_iter()
         .map(|_| {
-            let idx = run_a_game(5) as usize;
+            let idx = run_a_game(dimension, c) as usize;
             let mut arr = [0, 0, 0];
             arr[idx] = 1;
             arr
@@ -195,10 +198,17 @@ fn main() {
             |acc, x| [acc[0] + x[0], acc[1] + x[1], acc[2] + x[2]],
         );
 
+    let winrate = (stats[2] as f64 / number_of_games as f64) * 100.;
+    let nullrate = (stats[0] as f64 / number_of_games as f64) * 100.;
     println!(
-        "With C = sqrt(2), 10000 rollouts, in a tictactoe of dim 5, and versus a random bot \
-    the mcts wins {}% of time and there is {}% nulls",
-        (stats[2] as f64 / number_of_games as f64) * 100.,
-        (stats[0] as f64 / number_of_games as f64) * 100.
+        "With C = {:2}, 10000 rollouts,
+        in a tictactoe of dim {}, with {} number of game versus a random bot who begins
+        the mcts wins {}% of time, there is {}% nulls, so random bot  wins {}% of the time",
+        c,
+        dimension,
+        number_of_games,
+        winrate,
+        nullrate,
+        100. - (winrate + nullrate)
     )
 }

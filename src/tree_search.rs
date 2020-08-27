@@ -14,16 +14,15 @@ use crate::Evaluator;
 
 /// This is a special MCTS because it doesn't store the state in the node but instead stores the
 /// historic to the node.
-///
 #[derive(Clone)]
 pub struct LazyMcts<'a, State, TP, PP, BP, EV, AddInfo>
-where
-    State: GameTrait,
-    TP: LazyTreePolicy<State, EV, AddInfo>,
-    PP: Playout<State>,
-    BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, AddInfo>,
-    EV: Evaluator<State, AddInfo>,
-    AddInfo: Clone + Default,
+    where
+        State: GameTrait,
+        TP: LazyTreePolicy<State, EV, AddInfo>,
+        PP: Playout<State>,
+        BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, AddInfo>,
+        EV: Evaluator<State, AddInfo>,
+        AddInfo: Clone + Default,
 {
     root_state: &'a State,
     tree_policy: PhantomData<TP>,
@@ -34,14 +33,14 @@ where
 }
 
 impl<'a, State, TP, PP, BP, EV, A> LazyMcts<'a, State, TP, PP, BP, EV, A>
-where
-    State: GameTrait,
-    TP: LazyTreePolicy<State, EV, A>,
-    PP: Playout<State>,
-    BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A>,
-    EV: Evaluator<State, A>,
-    EV::Reward: Zero + Add + Div + ToPrimitive + Clone + Display,
-    A: Clone + Default,
+    where
+        State: GameTrait,
+        TP: LazyTreePolicy<State, EV, A>,
+        PP: Playout<State>,
+        BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A>,
+        EV: Evaluator<State, A>,
+        EV::Reward: Zero + Add + Div + ToPrimitive + Clone + Display,
+        A: Clone + Default,
 {
     pub fn new(root_state: &'a State) -> Self {
         Self::with_capacity(root_state, 0)
@@ -70,19 +69,21 @@ where
     }
 
     /// Executes one selection, expansion?, simulation, backpropagation.
-    pub fn execute(&mut self, playout_args: PP::Args) {
-        let (node_id, state) = TP::tree_policy(&mut self.tree, self.root_state.clone());
+    pub fn execute(&mut self, evaluation_args: &EV::Args, playout_args: PP::Args) {
+        let (node_id, state) = TP::tree_policy(&mut self.tree, self.root_state.clone(),
+                                               evaluation_args);
         let final_state = PP::playout(state, playout_args);
         let eval = EV::evaluate_leaf(final_state, &self.root_state.player_turn());
         BP::backprop(&mut self.tree, node_id, eval);
     }
 
     /// Returns the best move from the root.
-    pub fn best_move(&self) -> State::Move {
+    pub fn best_move(&self, evaluator_args : &EV::Args) -> State::Move {
         let best_child = TP::best_child(
             &self.tree,
             &self.root_state.player_turn(),
             self.tree.root().id(),
+            evaluator_args,
         );
         self.tree
             .get(best_child)
@@ -123,14 +124,14 @@ where
 }
 
 impl<State, TP, PP, BP, EV, A> Debug for LazyMcts<'_, State, TP, PP, BP, EV, A>
-where
-    State: GameTrait,
-    TP: LazyTreePolicy<State, EV, A>,
-    PP: Playout<State>,
-    BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A>,
-    EV: Evaluator<State, A>,
-    EV::Reward: Debug + Div + ToPrimitive + Zero,
-    A: Clone + Default + Debug,
+    where
+        State: GameTrait,
+        TP: LazyTreePolicy<State, EV, A>,
+        PP: Playout<State>,
+        BP: BackPropPolicy<Vec<State::Move>, State::Move, EV::Reward, A>,
+        EV: Evaluator<State, A>,
+        EV::Reward: Debug + Div + ToPrimitive + Zero,
+        A: Clone + Default + Debug,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.write_str(&format!("{:?}", self.tree))

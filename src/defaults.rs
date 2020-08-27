@@ -3,25 +3,25 @@ use std::ops::{Add, AddAssign, Div};
 
 use ego_tree::{NodeId, NodeMut, Tree};
 use noisy_float::prelude::n64;
-use num_traits::{FloatConst, ToPrimitive, Zero};
+use num_traits::{ToPrimitive, Zero};
 use rand::prelude::IteratorRandom;
 use rand::{thread_rng, Rng};
 
 use crate::aliases::{LazyMctsNode, LazyMctsTree};
 use crate::mcts_node::MctsNode;
 use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
-use crate::{uct_value, Evaluator, Num};
+use crate::{uct_value, Evaluator, Num, Nat};
 
 /// A default backprop policy it will take the reward of the simulation and backkpropagate the
 /// result  to the branch nodes.
 pub struct DefaultBackProp {}
 
 impl<
-        T: Clone,
-        Move: Clone,
-        R: Add + AddAssign + Div + Clone + Zero + ToPrimitive,
-        A: Clone + Default,
-    > BackPropPolicy<T, Move, R, A> for DefaultBackProp
+    T: Clone,
+    Move: Clone,
+    R: Add + AddAssign + Div + Clone + Zero + ToPrimitive,
+    A: Clone + Default,
+> BackPropPolicy<T, Move, R, A> for DefaultBackProp
 {
     fn backprop(tree: &mut Tree<MctsNode<T, Move, R, A>>, leaf: NodeId, reward: R) {
         let root_id = tree.root().id();
@@ -67,21 +67,23 @@ pub struct DefaultLazyTreePolicy<State: GameTrait, EV: Evaluator<State, A>, A: C
     phantom_ev: PhantomData<EV>,
 }
 
-impl<State: GameTrait, EV: Evaluator<State, A, Args = (u32, f64)>, A: Clone + Default>
-    DefaultLazyTreePolicy<State, EV, A>
-where
-    EV::Reward: Div + ToPrimitive + Add + Zero,
+impl<State: GameTrait, EV: Evaluator<State, A, Args=f64>, A: Clone + Default>
+DefaultLazyTreePolicy<State, EV, A>
+    where
+        EV::Reward: Div + ToPrimitive + Add + Zero,
 {
     pub fn select(
         mut tree: &mut LazyMctsTree<State, EV::Reward, A>,
         turn: &State::Player,
+        evaluator_args: &EV::Args,
     ) -> NodeId {
         let mut current_node_id = tree.root().id();
         while tree.get(current_node_id).unwrap().has_children() {
             if tree.get(current_node_id).unwrap().value().can_add_child() {
                 return current_node_id;
             } else {
-                current_node_id = Self::best_child(&mut tree, turn, current_node_id);
+                current_node_id = Self::best_child(&mut tree, turn, current_node_id,
+                                                   evaluator_args);
             }
         }
         current_node_id
@@ -118,17 +120,18 @@ where
     }
 }
 
-impl<State: GameTrait, EV: Evaluator<State, A, Args = (u32, f64)>, A: Clone + Default>
-    LazyTreePolicy<State, EV, A> for DefaultLazyTreePolicy<State, EV, A>
-where
-    EV::Reward: Div + Add + ToPrimitive + Zero,
+impl<State: GameTrait, EV: Evaluator<State, A, Args=f64>, A: Clone + Default>
+LazyTreePolicy<State, EV, A> for DefaultLazyTreePolicy<State, EV, A>
+    where
+        EV::Reward: Div + Add + ToPrimitive + Zero,
 {
     fn tree_policy(
         tree: &mut LazyMctsTree<State, EV::Reward, A>,
         root_state: State,
+        evaluator_args: &EV::Args,
     ) -> (NodeId, State) {
         let master_player = root_state.player_turn();
-        let selected_node_id = Self::select(tree, &master_player);
+        let selected_node_id = Self::select(tree, &master_player, evaluator_args);
         Self::expand(tree.get_mut(selected_node_id).unwrap(), root_state)
     }
 
@@ -143,12 +146,13 @@ where
         tree: &LazyMctsTree<State, EV::Reward, A>,
         turn: &State::Player,
         parent_id: NodeId,
+        eval_args: &EV::Args,
     ) -> NodeId {
         let parent_node = tree.get(parent_id).unwrap();
         let n_visits = parent_node.value().n_visits;
         parent_node
             .children()
-            .max_by_key(|child| EV::eval_child(&child.value(), turn, &(n_visits, f64::SQRT_2())))
+            .max_by_key(|child| EV::eval_child(&child.value(), turn, n_visits, eval_args))
             .unwrap()
             .id()
     }
@@ -158,15 +162,16 @@ where
 pub struct DefaultUctEvaluator {}
 
 impl<State: GameTrait, AdditionalInfo: Clone + Default> Evaluator<State, AdditionalInfo>
-    for DefaultUctEvaluator
+for DefaultUctEvaluator
 {
-    type Args = (u32, f64);
-    type Reward = u32;
+    type Args = f64;
+    type Reward = Nat;
 
     fn eval_child(
         child: &LazyMctsNode<State, Self::Reward, AdditionalInfo>,
         _turn: &State::Player,
-        &(parent_visits, c): &Self::Args,
+        parent_visits: Nat,
+        &c: &Self::Args,
     ) -> Num {
         uct_value(
             parent_visits,

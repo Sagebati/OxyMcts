@@ -4,6 +4,7 @@ use ego_tree::{NodeId, Tree};
 
 use crate::aliases::{LazyMctsNode, LazyMctsTree, Num};
 use crate::mcts_node::MctsNode;
+use crate::Nat;
 
 pub trait GameTrait: Clone {
     type Player: Debug + Clone + Eq;
@@ -37,6 +38,7 @@ pub trait Evaluator<State: GameTrait, AdditionalInfo: Clone + Default> {
     fn eval_child(
         child: &LazyMctsNode<State, Self::Reward, AdditionalInfo>,
         turn: &State::Player,
+        parent_visits: Nat,
         args: &Self::Args,
     ) -> Num;
 
@@ -57,6 +59,7 @@ pub trait LazyTreePolicy<State: GameTrait, EV: Evaluator<State, A>, A: Clone + D
     fn tree_policy(
         tree: &mut LazyMctsTree<State, EV::Reward, A>,
         root_state: State,
+        evaluator_args: &EV::Args,
     ) -> (NodeId, State);
 
     /// This method is only needed because we don't store the state in each node so we need, to
@@ -73,6 +76,7 @@ pub trait LazyTreePolicy<State: GameTrait, EV: Evaluator<State, A>, A: Clone + D
         tree: &LazyMctsTree<State, EV::Reward, A>,
         turn: &State::Player,
         parent_id: NodeId,
+        evaluator_args: &EV::Args,
     ) -> NodeId;
 }
 
