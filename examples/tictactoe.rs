@@ -202,7 +202,7 @@ fn main() {
     let nullrate = (stats[0] as f64 / number_of_games as f64) * 100.;
     println!(
         "With C = {:.5}, 10000 rollouts,
-        in a tictactoe of dim {}, with {} games versus a random bot who begins
+        in a tictactoe of dim {}, in {} games versus a random bot who begins
         the mcts wins {:.1}% of time, there is {:.1}% nulls, so random bot wins {:.1}% of the time",
         c,
         dimension,
