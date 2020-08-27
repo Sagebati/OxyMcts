@@ -201,9 +201,9 @@ fn main() {
     let winrate = (stats[2] as f64 / number_of_games as f64) * 100.;
     let nullrate = (stats[0] as f64 / number_of_games as f64) * 100.;
     println!(
-        "With C = {:2}, 10000 rollouts,
-        in a tictactoe of dim {}, with {} number of game versus a random bot who begins
-        the mcts wins {}% of time, there is {}% nulls, so random bot  wins {}% of the time",
+        "With C = {:.5}, 10000 rollouts,
+        in a tictactoe of dim {}, with {} games versus a random bot who begins
+        the mcts wins {:.1}% of time, there is {:.1}% nulls, so random bot wins {:.1}% of the time",
         c,
         dimension,
         number_of_games,
