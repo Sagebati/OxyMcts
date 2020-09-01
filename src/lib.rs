@@ -6,6 +6,7 @@ pub use crate::traits::*;
 pub use crate::tree_search::LazyMcts;
 pub use crate::agents::*;
 pub use crate::mcts_node::*;
+pub use ego_tree::*;
 
 mod aliases;
 mod agents;
