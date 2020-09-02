@@ -3,13 +3,13 @@ use std::ops::{Add, AddAssign, Div};
 
 use ego_tree::{NodeId, NodeMut, Tree};
 use num_traits::{ToPrimitive, Zero};
-use rand::prelude::IteratorRandom;
 use rand::{thread_rng, Rng};
 
 use crate::aliases::{LazyMctsNode, LazyMctsTree};
 use crate::mcts_node::MctsNode;
 use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
 use crate::{uct_value, Evaluator, Nat, Num};
+use rand::prelude::SliceRandom;
 
 /// A default backprop policy it will take the reward of the simulation and backkpropagate the
 /// result  to the branch nodes.
@@ -48,11 +48,9 @@ impl<T: GameTrait> Playout<T> for DefaultPlayout {
 
     fn playout(mut state: T, _args: ()) -> T {
         while !state.is_final() {
-            let m = state
-                .legals_moves()
-                .into_iter()
-                .choose(&mut thread_rng())
-                .unwrap();
+            let moves = state
+                .legals_moves();
+            let m = moves.choose(&mut thread_rng()) .unwrap();
             state.do_move(&m);
         }
         state
