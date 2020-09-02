@@ -31,6 +31,7 @@ This tree doesn't store the "game" state in the tree's nodes instead it stores o
  - use another library for managing the tree.
  - provide a parallel mcts implementation.
  - provide a mcts implementation using hashtables.
+ - Use trait for abstract from the node and tree.
 
 # Experiment
 With C = 1.41421, 10000 rollouts,
