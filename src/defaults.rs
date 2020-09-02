@@ -13,7 +13,7 @@ use crate::{uct_value, Evaluator, Nat, Num};
 
 /// A default backprop policy it will take the reward of the simulation and backkpropagate the
 /// result  to the branch nodes.
-pub struct DefaultBackProp {}
+pub struct DefaultBackProp;
 
 impl<
     T: Clone,
@@ -41,7 +41,7 @@ impl<
 }
 
 /// Simulating taking random moves a applying until the end.
-pub struct DefaultPlayout {}
+pub struct DefaultPlayout;
 
 impl<T: GameTrait> Playout<T> for DefaultPlayout {
     type Args = ();
@@ -164,7 +164,7 @@ LazyTreePolicy<State, EV, A, Reward> for DefaultLazyTreePolicy<State, EV, A, Rew
 }
 
 /// Uses UCT to evaluate nodes, and evaluates an endstate with 1 if the player won.
-pub struct DefaultUctEvaluator {}
+pub struct DefaultUctEvaluator;
 
 impl<State: GameTrait, AdditionalInfo: Clone + Default, Reward: Clone + Div + Zero + ToPrimitive
 + Add>

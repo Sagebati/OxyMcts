@@ -7,8 +7,8 @@ use crate::aliases::{Nat, Num};
 pub fn uct_value(parent_visits: Nat, sum_rewards: f64, node_visit: Nat, c: f64) -> Num {
     let sum_rewards = n64(sum_rewards);
     let exploitation_param = sum_rewards / node_visit as f64;
-    let exploratation_param = (n64(parent_visits as f64).ln() / (node_visit as f64)).sqrt();
-    exploitation_param + n64(c) * exploratation_param
+    let exploration_param = (n64(parent_visits as f64).ln() / (node_visit as f64)).sqrt();
+    exploitation_param + n64(c) * exploration_param
 }
 
 #[test]

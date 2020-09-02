@@ -122,6 +122,10 @@ impl<'a, State, TP, PP, BP, EV, A, R> LazyMcts<'a, State, TP, PP, BP, EV, A, R>
             )])
         }
     }
+
+    pub fn tree(&self) -> &LazyMctsTree<State, R, A> {
+        &self.tree
+    }
 }
 
 impl<State, TP, PP, BP, EV, A, R> Debug for LazyMcts<'_, State, TP, PP, BP, EV, A, R>
