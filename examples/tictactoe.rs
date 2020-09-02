@@ -4,8 +4,8 @@ use std::fmt::{Display, Formatter};
 
 use rayon::prelude::*;
 
-use oxymcts::{GameTrait, random_agent, mcts_uct_agent};
 use num_traits::FloatConst;
+use oxymcts::{mcts_uct_agent, random_agent, GameTrait};
 
 #[derive(Debug, Clone, Default)]
 struct TicTacToe {

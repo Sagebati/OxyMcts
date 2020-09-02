@@ -29,14 +29,14 @@ pub trait GameTrait: Clone {
     fn get_winner(&self) -> Self::Player;
 }
 
-pub trait Evaluator<State: GameTrait, AdditionalInfo: Clone + Default> {
+pub trait Evaluator<State: GameTrait, Reward: Clone, AdditionalInfo: Clone + Default> {
     type Args;
-    type Reward: Clone;
+    type EvalResult: Clone;
 
     /// Evaluates each node of the monte carlo tree search.
     /// for ex: using UCT
     fn eval_child(
-        child: &LazyMctsNode<State, Self::Reward, AdditionalInfo>,
+        child: &LazyMctsNode<State, Reward, AdditionalInfo>,
         turn: &State::Player,
         parent_visits: Nat,
         args: &Self::Args,
@@ -44,7 +44,7 @@ pub trait Evaluator<State: GameTrait, AdditionalInfo: Clone + Default> {
 
     /// Evaluates the a final state, when a simulation is over when call this function to know
     /// the reward.
-    fn evaluate_leaf(child: State, turn: &State::Player) -> Self::Reward;
+    fn evaluate_leaf(child: State, turn: &State::Player) -> Self::EvalResult;
 }
 
 pub trait Playout<State> {
@@ -53,11 +53,17 @@ pub trait Playout<State> {
     fn playout(state: State, args: Self::Args) -> State;
 }
 
-pub trait LazyTreePolicy<State: GameTrait, EV: Evaluator<State, A>, A: Clone + Default> {
+pub trait LazyTreePolicy<
+    State: GameTrait,
+    EV: Evaluator<State, Reward, A>,
+    A: Clone + Default,
+    Reward: Clone,
+>
+{
     /// Choose the best node, for example we apply the UCT to choose the best node then we expand
     /// it and we return the expansion.
     fn tree_policy(
-        tree: &mut LazyMctsTree<State, EV::Reward, A>,
+        tree: &mut LazyMctsTree<State, Reward, A>,
         root_state: State,
         evaluator_args: &EV::Args,
     ) -> (NodeId, State);
@@ -73,18 +79,24 @@ pub trait LazyTreePolicy<State: GameTrait, EV: Evaluator<State, A>, A: Clone + D
 
     /// This method use the Evaluator to get best child using evaluate_child.
     fn best_child(
-        tree: &LazyMctsTree<State, EV::Reward, A>,
+        tree: &LazyMctsTree<State, Reward, A>,
         turn: &State::Player,
         parent_id: NodeId,
         evaluator_args: &EV::Args,
     ) -> NodeId;
 }
 
-pub trait BackPropPolicy<State: Clone, Move: Clone, Reward: Clone, AdditionalInfo: Clone + Default>
+pub trait BackPropPolicy<
+    State: Clone,
+    Move: Clone,
+    Reward: Clone,
+    AdditionalInfo: Clone + Default,
+    EvalResult = Reward,
+>
 {
     fn backprop(
         tree: &mut Tree<MctsNode<State, Move, Reward, AdditionalInfo>>,
         leaf: NodeId,
-        playout_result: Reward,
+        playout_result: EvalResult,
     );
 }
