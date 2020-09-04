@@ -3,8 +3,14 @@ name = "oxymcts"
 version = "0.1.0"
 authors = ["Samuel Batissou <samuelbatissou@gmail.com>"]
 edition = "2018"
+readme = "README.md"
+description = "Library for general traits and default implementations for Monte Carlo Tree Search"
+license = "MIT"
+repository = "https://github.com/sagebati/oxymcts"
+keywords = ["mcts", "learning", "monte", "carlo", "tree"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[badges]
+maintenance = { status = "actively-developed" }
 
 [dependencies]
 ego-tree = "0.6.2"
