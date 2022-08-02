@@ -2,10 +2,11 @@ use std::collections::HashSet;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
+use num_traits::FloatConst;
+use rand::thread_rng;
 use rayon::prelude::*;
 
-use num_traits::FloatConst;
-use oxymcts::{mcts_uct_agent, random_agent, GameTrait};
+use oxymcts::{GameTrait, mcts_uct_agent, random_agent};
 
 #[derive(Debug, Clone, Default)]
 struct TicTacToe {
@@ -134,7 +135,7 @@ impl Display for TicTacToe {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let mut str_final = String::new();
         for i in 0..self.n {
-            str_final.push_str("|");
+            str_final.push('|');
             for j in 0..self.n {
                 let s = match self.grid[i][j] {
                     0 => " ",
@@ -143,34 +144,36 @@ impl Display for TicTacToe {
                     _ => unreachable!(),
                 };
                 str_final.push_str(s);
-                str_final.push_str("|");
+                str_final.push('|');
             }
-            str_final.push_str("\n");
+            str_final.push('\n');
         }
         write!(f, "{}", str_final)
     }
 }
 
 fn run_a_game(n: usize, c: f64) -> u8 {
+    let mut rng = thread_rng();
     let mut tictactoe = TicTacToe::new(n);
     while !tictactoe.is_final() {
-        let m = random_agent(&tictactoe);
+        let m = random_agent(&tictactoe, &mut rng);
         tictactoe.play(m);
         if !tictactoe.is_final() {
             let m = mcts_uct_agent(&tictactoe, 1000, c);
             tictactoe.play(m);
         }
     }
-    return tictactoe.get_winner();
+    tictactoe.get_winner()
 }
 
 fn main() {
+    let mut rng = thread_rng();
     println!("Player 1: Cross (Random bot)");
     println!("Player 2: Circle (MCTS)");
     let mut tictactoe = TicTacToe::new(6);
     while !tictactoe.is_final() {
         println!("Random turn: ");
-        let move_random = dbg!(random_agent(&tictactoe));
+        let move_random = dbg!(random_agent(&tictactoe, &mut rng));
         tictactoe.play(move_random);
         println!("{}", tictactoe);
         if !tictactoe.is_final() {

@@ -1,6 +1,6 @@
 [package]
 name = "oxymcts"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Samuel Batissou <samuelbatissou@gmail.com>"]
 edition = "2018"
 readme = "README.md"
@@ -14,9 +14,9 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 ego-tree = "0.6.2"
-num-traits = "0.2.11"
-rand = "0.7.3"
-noisy_float = "0.1.12"
+num-traits = "0.2.15"
+rand = "0.8.5"
+noisy_float = "0.2.0"
 ascii_tree = { version = "0.1.1", optional = true }
 
 [features]
@@ -24,4 +24,4 @@ default = ["ascii-tree"]
 ascii-tree = ["ascii_tree"]
 
 [dev-dependencies]
-rayon = "1.4.0"
+rayon = "1.5.3"

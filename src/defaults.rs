@@ -3,13 +3,13 @@ use std::ops::{Add, AddAssign, Div};
 
 use ego_tree::{NodeId, NodeMut, Tree};
 use num_traits::{ToPrimitive, Zero};
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
+use rand::prelude::SliceRandom;
 
+use crate::{Evaluator, Nat, Num, uct_value};
 use crate::aliases::{LazyMctsNode, LazyMctsTree};
 use crate::mcts_node::MctsNode;
 use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
-use crate::{uct_value, Evaluator, Nat, Num};
-use rand::prelude::SliceRandom;
 
 /// A default backprop policy it will take the reward of the simulation and backkpropagate the
 /// result  to the branch nodes.
@@ -98,7 +98,7 @@ DefaultLazyTreePolicy<State, EV, A, Reward>
             return (node_to_expand.id(), new_state);
         }
         let unvisited_moves = &mut node_to_expand.value().unvisited_moves;
-        let index = thread_rng().gen_range(0, unvisited_moves.len());
+        let index = thread_rng().gen_range(0..unvisited_moves.len());
         let move_to_expand = unvisited_moves[index].clone();
         unvisited_moves[index] = unvisited_moves.last().unwrap().clone();
         unvisited_moves.pop();
@@ -135,7 +135,10 @@ LazyTreePolicy<State, EV, A, Reward> for DefaultLazyTreePolicy<State, EV, A, Rew
     ) -> (NodeId, State) {
         let master_player = root_state.player_turn();
         let selected_node_id = Self::select(tree, &master_player, evaluator_args);
-        Self::expand(tree.get_mut(selected_node_id).unwrap(), root_state)
+        let node = tree
+            .get_mut(selected_node_id)
+            .unwrap();
+        Self::expand(node, root_state)
     }
 
     fn update_state(mut root_state: State, historic: &[State::Move]) -> State {
@@ -161,7 +164,7 @@ LazyTreePolicy<State, EV, A, Reward> for DefaultLazyTreePolicy<State, EV, A, Rew
     }
 }
 
-/// Uses UCT to evaluate nodes, and evaluates an endstate with 1 if the player won.
+/// Uses UCT to evaluate nodes, and evaluates an end state with 1 if the player won.
 pub struct DefaultUctEvaluator;
 
 impl<State: GameTrait, AdditionalInfo: Clone + Default, Reward: Clone + Div + Zero + ToPrimitive
