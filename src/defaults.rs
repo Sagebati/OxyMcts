@@ -51,7 +51,7 @@ impl<T: GameTrait> Playout<T> for DefaultPlayout {
             let moves = state
                 .legals_moves();
             let m = moves.choose(&mut thread_rng()) .unwrap();
-            state.do_move(&m);
+            state.do_move(m);
         }
         state
     }
@@ -73,7 +73,7 @@ DefaultLazyTreePolicy<State, EV, A, Reward>
         Reward: Div + ToPrimitive + Add + Zero,
 {
     pub fn select(
-        mut tree: &mut LazyMctsTree<State, Reward, A>,
+        tree: &mut LazyMctsTree<State, Reward, A>,
         turn: &State::Player,
         evaluator_args: &EV::Args,
     ) -> NodeId {
@@ -83,7 +83,7 @@ DefaultLazyTreePolicy<State, EV, A, Reward>
                 return current_node_id;
             } else {
                 current_node_id =
-                    Self::best_child(&mut tree, turn, current_node_id, evaluator_args);
+                    Self::best_child(tree, turn, current_node_id, evaluator_args);
             }
         }
         current_node_id
@@ -158,7 +158,7 @@ LazyTreePolicy<State, EV, A, Reward> for DefaultLazyTreePolicy<State, EV, A, Rew
         let n_visits = parent_node.value().n_visits;
         parent_node
             .children()
-            .max_by_key(|child| EV::eval_child(&child.value(), turn, n_visits, eval_args))
+            .max_by_key(|child| EV::eval_child(child.value(), turn, n_visits, eval_args))
             .unwrap()
             .id()
     }

@@ -3,14 +3,14 @@ use std::fmt::{Debug, Display, Formatter};
 use std::marker::PhantomData;
 use std::ops::{Add, Div};
 
+use ascii_tree::{Tree, write_tree};
 use ascii_tree::Tree::{Leaf, Node};
-use ascii_tree::{write_tree, Tree};
 use ego_tree::NodeId;
 use num_traits::{ToPrimitive, Zero};
 
 use crate::aliases::{LazyMctsNode, LazyMctsTree};
-use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
 use crate::Evaluator;
+use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
 
 /// This is a special MCTS because it doesn't store the state in the node but instead stores the
 /// historic to the node.
@@ -100,7 +100,7 @@ impl<'a, State, TP, PP, BP, EV, A, R> LazyMcts<'a, State, TP, PP, BP, EV, A, R>
         let tree = self.dfs(self.tree.root().id());
         let mut output = String::new();
         write_tree(&mut output, &tree).unwrap();
-        return output;
+        output
     }
 
     fn dfs(&self, node_id: NodeId) -> Tree {

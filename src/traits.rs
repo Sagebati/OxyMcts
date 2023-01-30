@@ -74,7 +74,7 @@ pub trait LazyTreePolicy<
         for x in historic {
             root_state.do_move(x)
         }
-        return root_state;
+        root_state
     }
 
     /// This method use the Evaluator to get best child using evaluate_child.
