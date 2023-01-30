@@ -1,6 +1,6 @@
 [package]
 name = "oxymcts"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Samuel Batissou <samuelbatissou@gmail.com>"]
 edition = "2018"
 readme = "README.md"
@@ -24,4 +24,4 @@ default = ["ascii-tree"]
 ascii-tree = ["ascii_tree"]
 
 [dev-dependencies]
-rayon = "1.5.3"
+rayon = "1.6.1"
