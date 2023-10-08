@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 use std::ops::{Add, AddAssign, Div};
 
 use ego_tree::{NodeId, NodeMut, Tree};
+use noisy_float::types::n64;
 use num_traits::{ToPrimitive, Zero};
 use rand::{Rng, thread_rng};
 use rand::prelude::SliceRandom;
@@ -181,6 +182,9 @@ for DefaultUctEvaluator
         parent_visits: Nat,
         &c: &Self::Args,
     ) -> Num {
+        if child.n_visits == 0 {
+            return n64(0f64);
+        }
         uct_value(
             parent_visits,
             child.sum_rewards.to_f64().unwrap(),
