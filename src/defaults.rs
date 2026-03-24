@@ -3,24 +3,24 @@ use std::ops::{Add, AddAssign, Div};
 
 use ego_tree::{NodeId, NodeMut, Tree};
 use num_traits::{ToPrimitive, Zero};
-use rand::{Rng, thread_rng};
-use rand::prelude::SliceRandom;
+use rand::prelude::{IndexedRandom, SliceRandom};
+use rand::{rng, Rng, RngExt};
 
-use crate::{Evaluator, Nat, Num, uct_value};
 use crate::aliases::{LazyMctsNode, LazyMctsTree};
 use crate::mcts_node::MctsNode;
 use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
+use crate::{uct_value, Evaluator, Nat, Num};
 
-/// A default backprop policy it will take the reward of the simulation and backkpropagate the
-/// result  to the branch nodes.
+/// A default backprop policy it will take the reward of the simulation and backpropagation the
+/// result to the branch nodes.
 pub struct DefaultBackProp;
 
 impl<
-    T: Clone,
-    Move: Clone,
-    R: Add + AddAssign + Div + Clone + Zero + ToPrimitive,
-    A: Clone + Default,
-> BackPropPolicy<T, Move, R, A> for DefaultBackProp
+        T: Clone,
+        Move: Clone,
+        R: Add + AddAssign + Div + Clone + Zero + ToPrimitive,
+        A: Clone + Default,
+    > BackPropPolicy<T, Move, R, A> for DefaultBackProp
 {
     fn backprop(tree: &mut Tree<MctsNode<T, Move, R, A>>, leaf: NodeId, reward: R) {
         let root_id = tree.root().id();
@@ -40,37 +40,46 @@ impl<
     }
 }
 
-/// Simulating taking random moves a applying until the end.
-pub struct DefaultPlayout;
+/// Simulating taking random moves an applying until the end.
+pub struct RandomPlayout;
 
-impl<T: GameTrait> Playout<T> for DefaultPlayout {
+pub type DefaultPlayout = RandomPlayout;
+
+impl<T: GameTrait> Playout<T> for RandomPlayout {
     type Args = ();
 
-    fn playout(mut state: T, _args: ()) -> T {
+    fn playout(&self, mut state: T, _args: ()) -> T {
         while !state.is_final() {
-            let moves = state
-                .legals_moves();
-            let m = moves.choose(&mut thread_rng()) .unwrap();
+            let moves = state.legals_moves();
+            let m = moves.choose(&mut rng()).unwrap();
             state.do_move(m);
         }
         state
     }
 }
 
-/// Explores at least once each child node, before going deeper.
-pub struct DefaultLazyTreePolicy<State: GameTrait, EV: Evaluator<State, Reward, A>, A: Clone +
-Default, Reward: Clone> {
+/// Explores each child node at least once before going deeper.
+#[derive(Default)]
+pub struct DefaultLazyTreePolicy<
+    State: GameTrait,
+    EV: Evaluator<State, Reward, A>,
+    A: Clone + Default,
+    Reward: Clone,
+> {
     phantom_state: PhantomData<State>,
     phantom_a: PhantomData<A>,
     phantom_ev: PhantomData<EV>,
     phamtom_r: PhantomData<Reward>,
 }
 
-impl<State: GameTrait, EV: Evaluator<State, Reward, A, Args=f64>, A: Clone + Default,
-    Reward: Clone>
-DefaultLazyTreePolicy<State, EV, A, Reward>
-    where
-        Reward: Div + ToPrimitive + Add + Zero,
+impl<
+        State: GameTrait,
+        EV: Evaluator<State, Reward, A, Args = f64>,
+        A: Clone + Default,
+        Reward: Clone,
+    > DefaultLazyTreePolicy<State, EV, A, Reward>
+where
+    Reward: Div + ToPrimitive + Add + Zero,
 {
     pub fn select(
         tree: &mut LazyMctsTree<State, Reward, A>,
@@ -82,8 +91,7 @@ DefaultLazyTreePolicy<State, EV, A, Reward>
             if tree.get(current_node_id).unwrap().value().can_add_child() {
                 return current_node_id;
             } else {
-                current_node_id =
-                    Self::best_child(tree, turn, current_node_id, evaluator_args);
+                current_node_id = Self::best_child(tree, turn, current_node_id, evaluator_args);
             }
         }
         current_node_id
@@ -98,7 +106,7 @@ DefaultLazyTreePolicy<State, EV, A, Reward>
             return (node_to_expand.id(), new_state);
         }
         let unvisited_moves = &mut node_to_expand.value().unvisited_moves;
-        let index = thread_rng().gen_range(0..unvisited_moves.len());
+        let index = rng().random_range(0..unvisited_moves.len());
         let move_to_expand = unvisited_moves[index].clone();
         unvisited_moves[index] = unvisited_moves.last().unwrap().clone();
         unvisited_moves.pop();
@@ -116,17 +124,22 @@ DefaultLazyTreePolicy<State, EV, A, Reward>
             additional_info: Default::default(),
         };
 
+        let node = LazyMctsNode {
+            node: new_node,
+                
+        }
+
         (node_to_expand.append(new_node).id(), new_state)
     }
 }
 
-impl<State, EV, A, Reward>
-LazyTreePolicy<State, EV, A, Reward> for DefaultLazyTreePolicy<State, EV, A, Reward>
-    where
-        State: GameTrait,
-        Reward: Clone + Div + Add + ToPrimitive + Zero,
-        EV: Evaluator<State, Reward, A, Args=f64>,
-        A: Clone + Default
+impl<State, EV, A, Reward> LazyTreePolicy<State, EV, A, Reward>
+    for DefaultLazyTreePolicy<State, EV, A, Reward>
+where
+    State: GameTrait,
+    Reward: Clone + Div + Add + ToPrimitive + Zero,
+    EV: Evaluator<State, Reward, A, Args = f64>,
+    A: Clone + Default,
 {
     fn tree_policy(
         tree: &mut LazyMctsTree<State, Reward, A>,
@@ -135,9 +148,7 @@ LazyTreePolicy<State, EV, A, Reward> for DefaultLazyTreePolicy<State, EV, A, Rew
     ) -> (NodeId, State) {
         let master_player = root_state.player_turn();
         let selected_node_id = Self::select(tree, &master_player, evaluator_args);
-        let node = tree
-            .get_mut(selected_node_id)
-            .unwrap();
+        let node = tree.get_mut(selected_node_id).unwrap();
         Self::expand(node, root_state)
     }
 
@@ -167,10 +178,11 @@ LazyTreePolicy<State, EV, A, Reward> for DefaultLazyTreePolicy<State, EV, A, Rew
 /// Uses UCT to evaluate nodes, and evaluates an end state with 1 if the player won.
 pub struct DefaultUctEvaluator;
 
-impl<State: GameTrait, AdditionalInfo: Clone + Default, Reward: Clone + Div + Zero + ToPrimitive
-+ Add>
-Evaluator<State, Reward, AdditionalInfo>
-for DefaultUctEvaluator
+impl<
+        State: GameTrait,
+        AdditionalInfo: Clone + Default,
+        Reward: Clone + Div + Zero + ToPrimitive + Add,
+    > Evaluator<State, Reward, AdditionalInfo> for DefaultUctEvaluator
 {
     type Args = f64;
     type EvalResult = Nat;

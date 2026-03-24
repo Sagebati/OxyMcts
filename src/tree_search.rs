@@ -1,70 +1,83 @@
 use core::fmt;
 use std::fmt::{Debug, Display, Formatter};
-use std::marker::PhantomData;
+use std::fs::metadata;
 use std::ops::{Add, Div};
 
-use ascii_tree::{Tree, write_tree};
 use ascii_tree::Tree::{Leaf, Node};
+use ascii_tree::{write_tree, Tree};
+use bon::{bon, builder, Builder};
 use ego_tree::NodeId;
 use num_traits::{ToPrimitive, Zero};
 
-use crate::aliases::{LazyMctsNode, LazyMctsTree};
-use crate::Evaluator;
+use crate::aliases::LazyMctsTree;
 use crate::traits::{BackPropPolicy, GameTrait, LazyTreePolicy, Playout};
+use crate::tree_search::lazy_mcts_builder::State;
+use crate::{Evaluator, LazyMctsNode};
+
+fn create_tree<State, Reward, Metadata>(
+    root: State,
+    metadata: Metadata,
+) -> LazyMctsTree<State, Reward, Metadata>
+where
+    State: GameTrait,
+    Reward: Clone + Default,
+    Metadata: Clone + Default,
+{
+}
 
 /// This is a special MCTS because it doesn't store the state in the node but instead stores the
 /// historic to the node.
-#[derive(Clone)]
-pub struct LazyMcts<'a, State, TP, PP, BP, EV, AddInfo, Reward>
-    where
-        State: GameTrait,
-        TP: LazyTreePolicy<State, EV, AddInfo, Reward>,
-        PP: Playout<State>,
-        BP: BackPropPolicy<Vec<State::Move>, State::Move, Reward, AddInfo, EV::EvalResult>,
-        EV: Evaluator<State, Reward, AddInfo>,
-        AddInfo: Clone + Default,
-        Reward: Clone,
+pub struct LazyMcts<'a, State, TP, PP, BP, EV, Metadata, Reward>
+where
+    State: GameTrait,
+    TP: LazyTreePolicy<State, EV, Metadata, Reward>,
+    PP: Playout<State>,
+    BP: BackPropPolicy<Vec<State::Move>, State::Move, Reward, Metadata, EV::EvalResult>,
+    EV: Evaluator<State, Reward, Metadata>,
+    Metadata: Clone + Default,
+    Reward: Clone,
 {
     root_state: &'a State,
-    tree_policy: PhantomData<TP>,
-    playout_policy: PhantomData<PP>,
-    backprop_policy: PhantomData<BP>,
-    evaluator: PhantomData<EV>,
-    tree: LazyMctsTree<State, Reward, AddInfo>,
+    tree_policy: TP,
+    playout_policy: PP,
+    backprop_policy: BP,
+    evaluator: EV,
+    tree: LazyMctsTree<State, Reward, Metadata>,
 }
 
+#[bon]
 impl<'a, State, TP, PP, BP, EV, A, R> LazyMcts<'a, State, TP, PP, BP, EV, A, R>
-    where
-        State: GameTrait,
-        TP: LazyTreePolicy<State, EV, A, R>,
-        PP: Playout<State>,
-        BP: BackPropPolicy<Vec<State::Move>, State::Move, R, A, EV::EvalResult>,
-        EV: Evaluator<State, R, A>,
-        A: Clone + Default,
-        R: Clone + Div + ToPrimitive + Zero + Add + Display,
+where
+    State: GameTrait,
+    TP: LazyTreePolicy<State, EV, A, R>,
+    PP: Playout<State>,
+    BP: BackPropPolicy<Vec<State::Move>, State::Move, R, A, EV::EvalResult>,
+    EV: Evaluator<State, R, A>,
+    A: Clone + Default,
+    R: Clone + Div + ToPrimitive + Zero + Add + Display,
 {
-    pub fn new(root_state: &'a State) -> Self {
-        Self::with_capacity(root_state, 0)
-    }
-
-    pub fn with_capacity(root_state: &'a State, capacity: usize) -> Self {
-        let tree = LazyMctsTree::<State, R, A>::with_capacity(
-            LazyMctsNode::<State, R, A> {
-                sum_rewards: Zero::zero(),
-                n_visits: 0,
-                unvisited_moves: root_state.legals_moves(),
-                hash: root_state.hash(),
-                state: vec![],
-                additional_info: Default::default(),
-            },
-            capacity,
+    #[builder]
+    pub fn new(
+        state: &'a State,
+        #[builder(default = crate::defaults::DefaultLazyTreePolicy::default())] tree_policy: TP,
+        #[builder(default = crate::defaults::RandomPlayout)] playout_policy: PP,
+        #[builder(default =  crate::defaults::DefaultBackProp)] backprop_policy: BP,
+        #[builder(default = crate::defaults::DefaultUctEvaluator)] evaluator: EV,
+        metadata: A,
+        capacity: Option<usize>,
+    ) -> Self {
+        let tree = ego_tree::Tree::new(
+            LazyMctsNode::builder()
+                .state(state)
+                .metadata(metadata)
+                .build(),
         );
         Self {
-            root_state,
-            tree_policy: PhantomData,
-            playout_policy: PhantomData,
-            backprop_policy: PhantomData,
-            evaluator: PhantomData,
+            root_state: &state,
+            tree_policy,
+            playout_policy,
+            backprop_policy,
+            evaluator,
             tree,
         }
     }
@@ -73,7 +86,7 @@ impl<'a, State, TP, PP, BP, EV, A, R> LazyMcts<'a, State, TP, PP, BP, EV, A, R>
     pub fn execute(&mut self, evaluation_args: &EV::Args, playout_args: PP::Args) {
         let (node_id, state) =
             TP::tree_policy(&mut self.tree, self.root_state.clone(), evaluation_args);
-        let final_state = PP::playout(state, playout_args);
+        let final_state = self.playout_policy.playout(state, playout_args);
         let eval = EV::evaluate_leaf(final_state, &self.root_state.player_turn());
         BP::backprop(&mut self.tree, node_id, eval);
     }
@@ -129,15 +142,15 @@ impl<'a, State, TP, PP, BP, EV, A, R> LazyMcts<'a, State, TP, PP, BP, EV, A, R>
 }
 
 impl<State, TP, PP, BP, EV, A, R> Debug for LazyMcts<'_, State, TP, PP, BP, EV, A, R>
-    where
-        State: GameTrait,
-        TP: LazyTreePolicy<State, EV, A, R>,
-        PP: Playout<State>,
-        BP: BackPropPolicy<Vec<State::Move>, State::Move, R, A, EV::EvalResult>,
-        EV: Evaluator<State, R, A>,
-        EV::EvalResult: Debug,
-        A: Clone + Default + Debug,
-        R: Clone + Debug + Div + Add + Zero + ToPrimitive,
+where
+    State: GameTrait,
+    TP: LazyTreePolicy<State, EV, A, R>,
+    PP: Playout<State>,
+    BP: BackPropPolicy<Vec<State::Move>, State::Move, R, A, EV::EvalResult>,
+    EV: Evaluator<State, R, A>,
+    EV::EvalResult: Debug,
+    A: Clone + Default + Debug,
+    R: Clone + Debug + Div + Add + Zero + ToPrimitive,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.write_str(&format!("{:?}", self.tree))

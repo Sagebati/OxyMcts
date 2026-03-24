@@ -13,11 +13,12 @@ keywords = ["mcts", "learning", "monte", "carlo", "tree"]
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-ego-tree = "0.6.2"
+ego-tree = "0.11.0"
 num-traits = "0.2.15"
-rand = "0.8.5"
+rand = { version  = "0.10.0", features = ["std_rng", "thread_rng"] }
 noisy_float = "0.2.0"
 ascii_tree = { version = "0.1.1", optional = true }
+bon = "3.9.1"
 
 [features]
 default = ["ascii-tree"]

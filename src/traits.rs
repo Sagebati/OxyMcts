@@ -16,7 +16,7 @@ pub trait GameTrait: Clone {
     /// Return the player actually playing.
     fn player_turn(&self) -> Self::Player;
 
-    /// Return if any the hash of the game state.
+    /// Return the hash of the state. Ex: for a chess game the zobrist hash
     fn hash(&self) -> u64;
 
     /// If the game is finished this return true.
@@ -50,7 +50,7 @@ pub trait Evaluator<State: GameTrait, Reward: Clone, AdditionalInfo: Clone + Def
 pub trait Playout<State> {
     type Args;
     /// Plays the state to have a final state.
-    fn playout(state: State, args: Self::Args) -> State;
+    fn playout(&self, state: State, args: Self::Args) -> State;
 }
 
 pub trait LazyTreePolicy<

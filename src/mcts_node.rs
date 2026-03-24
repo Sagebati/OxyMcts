@@ -1,19 +1,14 @@
-use std::fmt::{Debug, Error, Formatter};
-use std::ops::{Add, Deref, DerefMut, Div};
-
+use bon::{builder, Builder};
 use num_traits::{ToPrimitive, Zero};
+use std::fmt::{Debug, Error, Formatter};
+use std::fs::Metadata;
+use std::ops::{Add, Deref, DerefMut, Div};
 
 use crate::aliases::Nat;
 use crate::traits::GameTrait;
 
 #[derive(Clone)]
-pub struct MctsNode<T, Move, Reward, AdditionalInfo = ()>
-where
-    Reward: Clone,
-    T: Clone,
-    Move: Clone,
-    AdditionalInfo: Clone + Default,
-{
+pub struct MctsNode<T, Move, Reward, AdditionalInfo = ()> {
     pub sum_rewards: Reward,
     pub n_visits: Nat,
     /// All the moves who don't have a node. at the creation this list contains all the legals
@@ -24,13 +19,7 @@ where
     pub additional_info: AdditionalInfo,
 }
 
-impl<T, Move, Reward, AdditionalInfo> MctsNode<T, Move, Reward, AdditionalInfo>
-where
-    Reward: Clone,
-    T: Clone,
-    Move: Clone,
-    AdditionalInfo: Clone + Default,
-{
+impl<T, Move, Reward, Metadata> MctsNode<T, Move, Reward, Metadata> {
     #[inline]
     pub fn can_add_child(&self) -> bool {
         !self.unvisited_moves.is_empty()
